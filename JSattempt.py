@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException  
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from time import sleep
+
 
 
 import bs4  
@@ -14,5 +16,19 @@ el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl')
 
 for option in el.find_elements_by_tag_name('option'):
     if option.text == 'American Culture':
-        option.click() # select() in earlier versions of webdriver
+        option.click()
         break
+
+sub = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN")
+new = sub.click()
+sleep(5)
+new = browser.page_source
+browser.quit()
+soup = bs4.BeautifulSoup(new, "lxml")
+
+bb = soup.find_all(class_="ps_box-value")
+
+for tag in bb:
+    print(tag.text)
+
+

@@ -3,9 +3,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from time import sleep
-
-
-
 import bs4  
 
 url = 'https://coursesearch.uchicago.edu/psc/prdguest/EMPLOYEE/HRMS/c/UC_STUDENT_RECORDS_FL.UC_CLASS_SEARCH_FL.GBL'
@@ -29,6 +26,10 @@ soup = bs4.BeautifulSoup(new, "lxml")
 bb = soup.find_all(class_="ps_box-value")
 
 for tag in bb:
-    print(tag.text)
+    print(tag.text) # There may be a more elegant solution, 
+                    # but I was thinking about using RegEx here to filter title/time/etc
+
+
+                    # Also have to devise code to hit next page button if it exists
 
 

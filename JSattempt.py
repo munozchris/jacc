@@ -26,3 +26,16 @@ for i in range(len(el.find_elements_by_tag_name('option'))):
     course_info = soup.find_all(class_="ps_box-value")
     for detail in course_info:
         print(detail.text)
+    try:
+        more_results = browser.find_element_by_id("UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$")
+        while more_results:
+            more_results.click()
+            sleep(5)
+            new_page = browser.page_source
+            soup = bs4.BeautifulSoup(new_page, "lxml")
+            course_info = soup.find_all(class_="ps_box-value")
+            for detail in course_info:
+                print(detail.text)
+            more_results = browser.find_element_by_id("UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$")
+    except NoSuchElementException:
+        continue

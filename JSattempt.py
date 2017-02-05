@@ -2,6 +2,9 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException  
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 from time import sleep
 import bs4  
 
@@ -10,26 +13,16 @@ browser = webdriver.Chrome()
 browser.get(url)
 
 el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl')
+submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN")
 
-for option in el.find_elements_by_tag_name('option'):
-    if option.text == 'American Culture':
-        option.click()
-        break
-
-sub = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN")
-new = sub.click()
-sleep(5)
-new = browser.page_source
-browser.quit()
-soup = bs4.BeautifulSoup(new, "lxml")
-
-bb = soup.find_all(class_="ps_box-value")
-
-for tag in bb:
-    print(tag.text) # There may be a more elegant solution, 
-                    # but I was thinking about using RegEx here to filter title/time/etc
-
-
-                    # Also have to devise code to hit next page button if it exists
-
-
+for i in range(len(el.find_elements_by_tag_name('option'))):
+    el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl')
+    el.find_elements_by_tag_name('option')[i].click()
+    submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN")
+    submit.click()
+    sleep(15)
+    new_page = browser.page_source
+    soup = bs4.BeautifulSoup(new_page, "lxml")
+    course_info = soup.find_all(class_="ps_box-value")
+    for detail in course_info:
+        print(detail.text)

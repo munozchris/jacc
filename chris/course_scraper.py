@@ -8,13 +8,39 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from time import sleep
-from login_save import get_auth_driver
 
+from time import sleep
+#from login_save import get_auth_driver
 
 import bs4  
 import re
 import csv
+import sqlite3
+
+
+def make_table():
+    conn = sqlite3.connect("test.db")
+    c = conn.cursor()
+    t = "DROP TABLE CourseInfo;"
+    j = "CREATE TABLE CourseInfo(\
+        CourseId VARCHAR(100) Primary Key,\
+        CourseNum TEXT,\
+        Dept VARCHAR(100),\
+        Sect TEXT,\
+        Desc TEXT,\
+        Title TEXT,\
+        Professors VARCHAR(1000),\
+        Days VARCHAR(100),\
+        Times INT(2400),\
+        StartTime TEXT,\
+        EndTime TEXT);"
+    c.execute(t)
+    c.execute(j)
+    c.close()
+
+COUNTER = 0
+
+
 
 def get_course_info(soup, index):
     '''
@@ -22,27 +48,34 @@ def get_course_info(soup, index):
     returns a dictionary of all the info from the page
     '''
 
+    l = ["CourseId", "CourseNum", "Dept", "Sect", "Desc","Title", "Professors",
+         "Days", "StartTime", "EndTime"]
+
+
     class_info_dict = {"Professors": [], "Days": []}
 
     # Get course title
     course_title = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_UC_CLASS_TITLE$"+str(index))
-    class_info_dict["Course Title"] = course_title.text
+    class_info_dict["Title"] = course_title.text
 
     # Get department, course number, section number, and course ID
     intermediate = soup.find(class_="label label-success")
     if intermediate is None:
         intermediate = soup.find(class_="label label-default")
     information = intermediate.parent.text
+    print(information)
     dept = re.search("[A-Z]{4}", information)
     course_nums = re.findall("[0-9]{5}", information)
     course_num = course_nums[0]
-    course_id = course_nums[1]
+    global COUNTER
+    COUNTER += 1
+    course_id = COUNTER
     section_num = re.search("[0-9] ", information)
 
-    class_info_dict["Course Number"] = course_num
+    class_info_dict["CourseNum"] = course_num
     class_info_dict["Dept"] = dept.group()
-    class_info_dict["Section"] = section_num.group()
-    class_info_dict["Course ID"] = course_id
+    class_info_dict["Sect"] = section_num.group().strip()
+    class_info_dict["CourseId"] = course_id
 
             
     #if it exists
@@ -81,7 +114,7 @@ def get_course_info(soup, index):
         if start_time[6:] == "PM" and hour != "12":
             hour = str(int(hour)+12)
         start_time = int(hour+minute)
-        class_info_dict["Start Time"] = start_time
+        class_info_dict["StartTime"] = start_time
 
         end_time = times[1]
         hour = end_time[:2]
@@ -89,14 +122,14 @@ def get_course_info(soup, index):
         if end_time[6:] == "PM":
             hour = str(int(hour)+12)
         end_time = int(hour+minute)
-        class_info_dict["End Time"] = end_time
+        class_info_dict["EndTime"] = end_time
 
     timeframe = soup.find(class_="ps_box-value", id="MTG_DATE$0")
     text = timeframe.text
     start_date = text[:10]
     end_date = text[13:]
-    class_info_dict["Start Date"] = start_date
-    class_info_dict["End Date"] = end_date
+    class_info_dict["StartDate"] = start_date
+    class_info_dict["EndDate"] = end_date
     
     return class_info_dict
 
@@ -111,7 +144,9 @@ def create_list():
     # browser = webdriver.Chrome()  
     # browser.get(url)
     url2 = 'https://evaluations.uchicago.edu/index.php?EvalSearchType=option-number-search&Department=&CourseDepartment=AKKD&CourseNumber=10102&InstructorLastName=&advancedSearch=SEARCH'
-    browser = get_auth_driver(url2)
+    #browser = get_auth_driver(url2)
+    
+    browser = webdriver.Chrome()  
     browser.get(url)
 
 
@@ -121,6 +156,8 @@ def create_list():
 
     list_of_class_dicts = []
 
+    #conn = sqlite3.connect(sql_filename)
+    #c = conn.cursor()
 
     for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
@@ -147,7 +184,10 @@ def create_list():
                     soup = bs4.BeautifulSoup(html, "lxml")
 
                     class_dict = get_course_info(soup, j)
-                    list_of_class_dicts.append(class_dict)
+                    sql_commit_(class_dict)
+                    #list_of_class_dicts.append(class_dict)
+                    #c.execute("INSERT INTO employees (first_name) VALUES (%s)", ('Jane'))
+                    #cnx.commit()
                     
                     ret = wait.until(EC.visibility_of_element_located((By.ID, "UC_CLS_DTL_WRK_RETURN_PB$0")))
                     ret_btn = browser.find_element_by_id("UC_CLS_DTL_WRK_RETURN_PB$0")
@@ -161,7 +201,7 @@ def create_list():
                     flag= False
                 except TimeoutException:
                     break
-        except NoSuchElementException: # continue if page has no more results to load
+        except NoSuchElementException: 
             continue
     browser.quit()
 
@@ -180,6 +220,30 @@ def create_course_csv(list_of_class_dicts, index_filename):
 
     ## This doesn't work yet....
 
+def sql_commit_(class_dict):
+    conn = sqlite3.connect("test.db")
+    c = conn.cursor()
+
+    l = ["CourseNum", "Dept", "Sect", "Desc","Title", "Professors",
+         "Days", "Times", "StartTime", "EndTime"]
+
+    print(class_dict["CourseId"])
+    c.execute("INSERT INTO CourseInfo (CourseId) VALUES (?)", (str(class_dict["CourseId"]),))
+    for entry in class_dict:
+        print(entry)
+        if entry in l and len(class_dict[entry]) > 0:
+            if type(entry) == list: 
+                entry = str(tuple(entry))
+            if type(class_dict[entry]) == list: 
+                class_dict[entry] = str(class_dict[entry][0])
+            sql_query = "UPDATE CourseInfo SET" + " " + entry + "= " +\
+                    "'"  + class_dict[entry] + "'" +\
+                    " WHERE CourseId =" + "'" + str(class_dict['CourseId']) + "'" + ";"
+            print(sql_query)
+            c.execute(sql_query)
+        conn.commit()
+
+make_table()
 create_list()
 
 

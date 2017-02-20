@@ -9,6 +9,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from time import sleep
+from login_save import get_auth_driver
+
 
 import bs4  
 import re
@@ -106,9 +108,13 @@ def create_list():
     '''
 
     url = 'https://coursesearch.uchicago.edu/psc/prdguest/EMPLOYEE/HRMS/c/UC_STUDENT_RECORDS_FL.UC_CLASS_SEARCH_FL.GBL'
-    browser = webdriver.Chrome()  
+    # browser = webdriver.Chrome()  
+    # browser.get(url)
+    url2 = 'https://evaluations.uchicago.edu/index.php?EvalSearchType=option-number-search&Department=&CourseDepartment=AKKD&CourseNumber=10102&InstructorLastName=&advancedSearch=SEARCH'
+    browser = get_auth_driver(url2)
     browser.get(url)
-     
+
+
     el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # find the dropdown menu
     submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") # find the submit button
     wait = WebDriverWait(browser, 15)

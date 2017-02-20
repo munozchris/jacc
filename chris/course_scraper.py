@@ -28,6 +28,8 @@ def get_course_info(soup, index):
 
     # Get department, course number, section number, and course ID
     intermediate = soup.find(class_="label label-success")
+    if intermediate is None:
+        intermediate = soup.find(class_="label label-default")
     information = intermediate.parent.text
     dept = re.search("[A-Z]{4}", information)
     course_nums = re.findall("[0-9]{5}", information)
@@ -116,13 +118,14 @@ def create_list():
 
     for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
-        el.find_elements_by_tag_name('option')[i].click()  # click a dropdown menu item
+        el.find_elements_by_tag_name('option')[i+1].click()  # click a dropdown menu item
         submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") #avoid stale element exception
         submit.click() # submit department query
         value_wait = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ps_box-value")))
         try:
             flag = True
             while(flag):
+                find = browser.find_element_by_id("win0divUC_RSLT_NAV_WRK_HTMLAREA$0")
                 w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
                 class_desc= browser.find_elements_by_css_selector("tr.ps_grid-row.psc_rowact")
                 for j in range(len(class_desc[1:-4])):
@@ -130,6 +133,7 @@ def create_list():
                     w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
                     w2 = wait.until(EC.invisibility_of_element_located((By.ID, "WAIT_win0")))
                     class_descs = browser.find_elements_by_css_selector("tr.ps_grid-row.psc_rowact")
+                    w3 = wait.until(EC.element_to_be_clickable((By.ID, "DESCR100$0_row_0")))
                     class_descs[j].click()
                     desc_wait = wait.until(EC.presence_of_element_located((By.ID, "UC_CLS_DTL_WRK_DESCRLONG$0")))
                         
@@ -137,7 +141,6 @@ def create_list():
                     soup = bs4.BeautifulSoup(html, "lxml")
 
                     class_dict = get_course_info(soup, j)
-                    print(class_dict)
                     list_of_class_dicts.append(class_dict)
                     
                     ret = wait.until(EC.visibility_of_element_located((By.ID, "UC_CLS_DTL_WRK_RETURN_PB$0")))

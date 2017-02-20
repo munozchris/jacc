@@ -8,12 +8,17 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from login_save import get_auth_driver
 
 from time import sleep
 import bs4  
 
 url = 'https://coursesearch.uchicago.edu/psc/prdguest/EMPLOYEE/HRMS/c/UC_STUDENT_RECORDS_FL.UC_CLASS_SEARCH_FL.GBL'
-browser = webdriver.Chrome()  
+# browser = webdriver.Chrome()  
+# browser.get(url)
+url2 = 'https://evaluations.uchicago.edu/index.php?EvalSearchType=option-number-search&Department=&CourseDepartment=AKKD&CourseNumber=10102&InstructorLastName=&advancedSearch=SEARCH'
+
+browser = get_auth_driver(url2)
 browser.get(url)
  
 el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # find the dropdown menu
@@ -28,10 +33,10 @@ for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the l
     submit.click() # submit department query
     value_wait = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ps_box-value")))
     new_page = browser.page_source # get JavaScript-rendered HTML
-    #soup = bs4.BeautifulSoup(new_page, "lxml")
-    #course_info = soup.find_all(class_="ps_box-value") # scrape and print course info
-    #for detail in course_info:
-        #print(detail.text)
+    soup = bs4.BeautifulSoup(new_page, "lxml")
+    course_info = soup.find_all(class_="ps_box-value") # scrape and print course info
+    for detail in course_info:
+        print(detail.text)
     sleep(5)
     try:
         flag = True
@@ -55,11 +60,11 @@ for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the l
                 more_results = browser.find_element_by_id("UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$") # see if page has more than 25 results
                 more_results.click() # bring up next 25 results
                 sleep(5) # wait for page to load html
-                #new_page = browser.page_source # get html from new page
-                #soup = bs4.BeautifulSoup(new_page, "lxml")
-                #course_info = soup.find_all(class_="ps_box-value")
-                #for detail in course_info:
-                    #print(detail.text)
+                new_page = browser.page_source # get html from new page
+                soup = bs4.BeautifulSoup(new_page, "lxml")
+                course_info = soup.find_all(class_="ps_box-value")
+                for detail in course_info:
+                    print(detail.text)
             except NoSuchElementException: # continue if page has no more results to load
                 flag= False
             except TimeoutException:

@@ -26,35 +26,35 @@ def make_table():
     t2 = "DROP TABLE IF EXISTS ProfTable;"
     t3 = "DROP TABLE IF EXISTS MeetingPatterns"
 
-    CourseInfo = "CREATE TABLE CourseInfo(\
-        CourseId INT(10000) Primary Key,\
-        Dept VARCHAR(4),\
-        CourseNum TEXT,\
-        Sect TEXT,\
-        Title TEXT,\
-        Desc TEXT,\
-        Days VARCHAR(100),\
-        StartTime INT,\
-        EndTime INT,\
-        SectionEnroll VARCHAR(10),\
-        TotalEnroll VARCHAR(10),\
-        StartDate VARCHAR(15),\
+    CourseInfo = "CREATE TABLE CourseInfo(\n\
+        CourseId INT(10000) Primary Key,\n\
+        Dept VARCHAR(4),\n\
+        CourseNum TEXT,\n\
+        Sect TEXT,\n\
+        Title TEXT,\n\
+        Desc TEXT,\n\
+        Days VARCHAR(100),\n\
+        StartTime INT,\n\
+        EndTime INT,\n\
+        SectionEnroll VARCHAR(10),\n\
+        TotalEnroll VARCHAR(10),\n\
+        StartDate VARCHAR(15),\n\
         EndDate VARCHAR(15));"
     
-    ProfTable = "CREATE TABLE ProfTable(\
-                CourseId INT(10000),\
-                Professor VARCHAR(1000),\
-                Dept VARCHAR(4),\
-                CourseNum TEXT,\
+    ProfTable = "CREATE TABLE ProfTable(\n\
+                CourseId INT(10000),\n\
+                Professor VARCHAR(1000),\n\
+                Dept VARCHAR(4),\n\
+                CourseNum TEXT,\n\
                 Sect TEXT);"
 
-    MeetingPatterns = "CREATE TABLE MeetingPatterns(\
-                        CourseId INT(10000),\
-                        Days VARCHAR(100),\
-                        Times INT(2400),\
-                        StartTime TEXT,\
-                        EndTime TEXT,\
-                        StartDate VARCHAR(15),\
+    MeetingPatterns = "CREATE TABLE MeetingPatterns(\n\
+                        CourseId INT(10000),\n\
+                        Days VARCHAR(100),\n\
+                        Times INT(2400),\n\
+                        StartTime TEXT,\n\
+                        EndTime TEXT,\n\
+                        StartDate VARCHAR(15),\n\
                         EndDate VARCHAR(15));"
 
     c.execute(t)
@@ -275,32 +275,32 @@ make_table()
 create_list()
 def me():
     CourseInfo = "CREATE TABLE CourseInfo(\
-        CourseId INT(10000) Primary Key,\
-        Dept VARCHAR(4),\
-        CourseNum TEXT,\
-        Sect TEXT,\
-        Title TEXT,\
-        Desc TEXT,\
-        Days VARCHAR(100),\
-        StartTime INT,\
-        EndTime INT,\
-        SectionEnroll VARCHAR(10),\
-        TotalEnroll VARCHAR(10),\
-        StartDate VARCHAR(15),\
+        CourseId INT(10000) Primary Key,\n\
+        Dept VARCHAR(4),\n\
+        CourseNum TEXT,\n\
+        Sect TEXT,\n\
+        Title TEXT,\n\
+        Desc TEXT,\n\
+        Days VARCHAR(100),\n\
+        StartTime INT,\n\
+        EndTime INT,\n\
+        SectionEnroll VARCHAR(10),\n\
+        TotalEnroll VARCHAR(10),\n\
+        StartDate VARCHAR(15),\n\
         EndDate VARCHAR(15));"
     
     ProfTable = "CREATE TABLE ProfTable(\
-                CourseId INT(10000),\
-                Professor VARCHAR(1000),\
-                Dept VARCHAR(4),\
-                CourseNum TEXT,\
+                CourseId INT(10000),\n\
+                Professor VARCHAR(1000),\n\
+                Dept VARCHAR(4),\n\
+                CourseNum TEXT,\n\
                 Sect TEXT);"
 
     MeetingPatterns = "CREATE TABLE MeetingPatterns(\
                         CourseId INT(10000)\
-                        Days VARCHAR(100),\
-                        Times INT(2400),\
-                        StartTime TEXT,\
-                        EndTime TEXT,\
-                        StartDate VARCHAR(15),\
+                        Days VARCHAR(100),\n\
+                        Times INT(2400),\n\
+                        StartTime TEXT,\n\
+                        EndTime TEXT,\n\
+                        StartDate VARCHAR(15),\n\
                         EndDate VARCHAR(15));"

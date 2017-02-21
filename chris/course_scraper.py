@@ -23,24 +23,46 @@ def make_table():
     conn = sqlite3.connect("test.db")
     c = conn.cursor()
     t = "DROP TABLE IF EXISTS CourseInfo;"
-    j = "CREATE TABLE CourseInfo(\
-        CourseId VARCHAR(100) Primary Key,\
+    t2 = "DROP TABLE IF EXISTS ProfTable;"
+    t3 = "DROP TABLE IF EXISTS MeetingPatterns"
+
+    CourseInfo = "CREATE TABLE CourseInfo(\
+        CourseId INT(10000) Primary Key,\
         Dept VARCHAR(4),\
         CourseNum TEXT,\
         Sect TEXT,\
         Title TEXT,\
         Desc TEXT,\
-        Professors VARCHAR(1000),\
         Days VARCHAR(100),\
-        Times INT(2400),\
-        StartTime TEXT,\
-        EndTime TEXT,\
+        StartTime INT,\
+        EndTime INT,\
         SectionEnroll VARCHAR(10),\
         TotalEnroll VARCHAR(10),\
         StartDate VARCHAR(15),\
         EndDate VARCHAR(15));"
+    
+    ProfTable = "CREATE TABLE ProfTable(\
+                CourseId INT(10000),\
+                Professor VARCHAR(1000),\
+                Dept VARCHAR(4),\
+                CourseNum TEXT,\
+                Sect TEXT);"
+
+    MeetingPatterns = "CREATE TABLE MeetingPatterns(\
+                        CourseId INT(10000),\
+                        Days VARCHAR(100),\
+                        Times INT(2400),\
+                        StartTime TEXT,\
+                        EndTime TEXT,\
+                        StartDate VARCHAR(15),\
+                        EndDate VARCHAR(15));"
+
     c.execute(t)
-    c.execute(j)
+    c.execute(t2)
+    c.execute(t3)
+    c.execute(CourseInfo)
+    c.execute(ProfTable)
+    c.execute(MeetingPatterns)
     c.close()
 
 
@@ -49,9 +71,6 @@ def get_course_info(soup, index):
     Given the page source in beautiful Soup format,
     returns a dictionary of all the info from the page
     '''
-
-    l = ["CourseId", "CourseNum", "Dept", "Sect", "Desc","Title", "Professors",
-         "Days", "StartTime", "EndTime"]
 
 
     class_info_dict = {"Professors": [], "Days": []}
@@ -62,11 +81,9 @@ def get_course_info(soup, index):
 
     # Get department, course number, section number, and course ID
     intermediate = soup.find_all(class_=["label label-success", "label label-default"])
-    print(intermediate)
     #if intermediate is None:
         #intermediate = soup.find_all(class_="label label-default")
     information = intermediate[index].parent.text
-    print(information)
     dept = re.search("[A-Z]{4}", information)
     course_nums = re.findall("[0-9]{5}", information)
     course_num = course_nums[0]
@@ -100,7 +117,7 @@ def get_course_info(soup, index):
         class_info_dict["Professors"].append(professor)
 
 
-    times_and_day = soup.find(class_="ps_box-value", id="MTG_SCHED$0")
+    times_and_day = soup.find(class_="ps_box-value", id="MTG_SCHED$0") # Messed up in Aramaic (got 12, not 10:30)
     text = times_and_day.text
 
     days = re.findall("[A-Z][a-z]+", text)
@@ -155,10 +172,10 @@ def create_list():
 
     el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # find the dropdown menu
     submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") # find the submit button
-    wait = WebDriverWait(browser, 15)
+    wait = WebDriverWait(browser, 10)
 
-    list_of_class_dicts = []
-
+    select = Select(browser.find_element_by_id("UC_CLSRCH_WRK2_STRM"))
+    select.select_by_value('2174')
     #conn = sqlite3.connect(sql_filename)
     #c = conn.cursor()
 
@@ -172,9 +189,13 @@ def create_list():
             flag = True
             while(flag):
                 find = browser.find_element_by_id("win0divUC_RSLT_NAV_WRK_HTMLAREA$0")
-                w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
+                #w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
+                sleep(5)
                 class_desc= browser.find_elements_by_css_selector("tr.ps_grid-row.psc_rowact")
+                for clas in class_desc:
+                    print(clas.text)
                 for j in range(len(class_desc[1:-4])):
+                    print(len(class_desc[1:-4]))
                     find = browser.find_element_by_id("win0divUC_RSLT_NAV_WRK_HTMLAREA$0")
                     w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
                     w2 = wait.until(EC.invisibility_of_element_located((By.ID, "WAIT_win0")))
@@ -196,7 +217,7 @@ def create_list():
                     ret_btn = browser.find_element_by_id("UC_CLS_DTL_WRK_RETURN_PB$0")
                     ret_btn.click()
                 try:
-                    more_wait = wait.until(EC.visibility_of_element_located((By.ID, "UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$")))
+                    more_wait =  WebDriverWait(browser, 5).until(EC.visibility_of_element_located((By.ID, "UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$")))
                     more_results = browser.find_element_by_id("UC_RSLT_NAV_WRK_SEARCH_CONDITION2$46$") # see if page has more than 25 results
                     more_results.click() # bring up next 25 results
            
@@ -227,33 +248,59 @@ def sql_commit_(class_dict):
     conn = sqlite3.connect("test.db")
     c = conn.cursor()
 
-    l = ["CourseNum", "Dept", "Sect", "Desc","Title", "Professors",
-         "Days", "Times", "StartTime", "EndTime", "SectionEnroll",
+    l = ["CourseNum", "Dept", "Sect", "Desc","Title",
+         "Times", "StartTime", "EndTime", "SectionEnroll",
           "TotalEnroll", "StartDate", "EndDate"]
 
     print(class_dict["CourseId"])
     c.execute("INSERT INTO CourseInfo (CourseId) VALUES (?)", (str(class_dict["CourseId"]),))
     for entry in class_dict:
-        print(entry)
-        print(class_dict[entry])
         if entry in l:
-            if type(class_dict[entry]) == list: 
-                if len(class_dict[entry]) == 0:
-                    continue
-                else:
-                    class_dict[entry] = str(tuple(class_dict[entry]))
-            #if type(class_dict[entry]) == list: 
-                #class_dict[entry] = str(class_dict[entry][0])
             sql_query = '''UPDATE CourseInfo SET {} = "{}" WHERE CourseId = "{}";'''.format(entry, class_dict[entry], class_dict['CourseId'])
-            print(sql_query)
             c.execute(sql_query)
         conn.commit()
 
+    for prof in class_dict['Professors']:
+        c.execute("INSERT INTO ProfTable (CourseId, Professor, Dept, CourseNum, Sect)\
+                   VALUES (?, ?, ?, ?, ?)", (class_dict["CourseId"], 
+                                            prof, class_dict["Dept"],
+                                            class_dict["CourseNum"], 
+                                            class_dict["Sect"]))
+        conn.commit()
+
+
+
+
 make_table()
 create_list()
+def me():
+    CourseInfo = "CREATE TABLE CourseInfo(\
+        CourseId INT(10000) Primary Key,\
+        Dept VARCHAR(4),\
+        CourseNum TEXT,\
+        Sect TEXT,\
+        Title TEXT,\
+        Desc TEXT,\
+        Days VARCHAR(100),\
+        StartTime INT,\
+        EndTime INT,\
+        SectionEnroll VARCHAR(10),\
+        TotalEnroll VARCHAR(10),\
+        StartDate VARCHAR(15),\
+        EndDate VARCHAR(15));"
+    
+    ProfTable = "CREATE TABLE ProfTable(\
+                CourseId INT(10000),\
+                Professor VARCHAR(1000),\
+                Dept VARCHAR(4),\
+                CourseNum TEXT,\
+                Sect TEXT);"
 
-
-# Maybe ideally this would do both things at once -- it would run through the course
-# website, and instead of creating a list of dictionaries it would just add all the 
-# info to a csv file. Creating a list is probably an inefficient intermediate 
-# step but I'm not sure at this point how to skip it...
+    MeetingPatterns = "CREATE TABLE MeetingPatterns(\
+                        CourseId INT(10000)\
+                        Days VARCHAR(100),\
+                        Times INT(2400),\
+                        StartTime TEXT,\
+                        EndTime TEXT,\
+                        StartDate VARCHAR(15),\
+                        EndDate VARCHAR(15));"

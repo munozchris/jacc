@@ -17,29 +17,31 @@ import re
 import csv
 import sqlite3
 
+COUNTER = 0
 
 def make_table():
     conn = sqlite3.connect("test.db")
     c = conn.cursor()
-    t = "DROP TABLE CourseInfo;"
+    t = "DROP TABLE IF EXISTS CourseInfo;"
     j = "CREATE TABLE CourseInfo(\
         CourseId VARCHAR(100) Primary Key,\
+        Dept VARCHAR(4),\
         CourseNum TEXT,\
-        Dept VARCHAR(100),\
         Sect TEXT,\
-        Desc TEXT,\
         Title TEXT,\
+        Desc TEXT,\
         Professors VARCHAR(1000),\
         Days VARCHAR(100),\
         Times INT(2400),\
         StartTime TEXT,\
-        EndTime TEXT);"
+        EndTime TEXT,\
+        SectionEnroll VARCHAR(10),\
+        TotalEnroll VARCHAR(10),\
+        StartDate VARCHAR(15),\
+        EndDate VARCHAR(15));"
     c.execute(t)
     c.execute(j)
     c.close()
-
-COUNTER = 0
-
 
 
 def get_course_info(soup, index):
@@ -59,10 +61,11 @@ def get_course_info(soup, index):
     class_info_dict["Title"] = course_title.text
 
     # Get department, course number, section number, and course ID
-    intermediate = soup.find(class_="label label-success")
-    if intermediate is None:
-        intermediate = soup.find(class_="label label-default")
-    information = intermediate.parent.text
+    intermediate = soup.find_all(class_=["label label-success", "label label-default"])
+    print(intermediate)
+    #if intermediate is None:
+        #intermediate = soup.find_all(class_="label label-default")
+    information = intermediate[index].parent.text
     print(information)
     dept = re.search("[A-Z]{4}", information)
     course_nums = re.findall("[0-9]{5}", information)
@@ -82,13 +85,13 @@ def get_course_info(soup, index):
     total_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR2$"+str(index))
     text = total_enrollment.text
     numbers = text[18:]
-    class_info_dict["Total Enrollment"] = numbers
+    class_info_dict["TotalEnroll"] = numbers
      
     # if it exists
     section_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR1$"+str(index))
     text = section_enrollment.text
     numbers = text[20:]
-    class_info_dict["Section Enrollment"] = numbers
+    class_info_dict["SectionEnroll"] = numbers
 
     prof = soup.find(class_="ps_box-value", id="MTG$0")
     text = prof.text
@@ -161,7 +164,7 @@ def create_list():
 
     for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
-        el.find_elements_by_tag_name('option')[i+1].click()  # click a dropdown menu item
+        el.find_elements_by_tag_name('option')[i+10].click()  # click a dropdown menu item
         submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") #avoid stale element exception
         submit.click() # submit department query
         value_wait = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ps_box-value")))
@@ -225,20 +228,23 @@ def sql_commit_(class_dict):
     c = conn.cursor()
 
     l = ["CourseNum", "Dept", "Sect", "Desc","Title", "Professors",
-         "Days", "Times", "StartTime", "EndTime"]
+         "Days", "Times", "StartTime", "EndTime", "SectionEnroll",
+          "TotalEnroll", "StartDate", "EndDate"]
 
     print(class_dict["CourseId"])
     c.execute("INSERT INTO CourseInfo (CourseId) VALUES (?)", (str(class_dict["CourseId"]),))
     for entry in class_dict:
         print(entry)
-        if entry in l and len(class_dict[entry]) > 0:
-            if type(entry) == list: 
-                entry = str(tuple(entry))
+        print(class_dict[entry])
+        if entry in l:
             if type(class_dict[entry]) == list: 
-                class_dict[entry] = str(class_dict[entry][0])
-            sql_query = "UPDATE CourseInfo SET" + " " + entry + "= " +\
-                    "'"  + class_dict[entry] + "'" +\
-                    " WHERE CourseId =" + "'" + str(class_dict['CourseId']) + "'" + ";"
+                if len(class_dict[entry]) == 0:
+                    continue
+                else:
+                    class_dict[entry] = str(tuple(class_dict[entry]))
+            #if type(class_dict[entry]) == list: 
+                #class_dict[entry] = str(class_dict[entry][0])
+            sql_query = '''UPDATE CourseInfo SET {} = "{}" WHERE CourseId = "{}";'''.format(entry, class_dict[entry], class_dict['CourseId'])
             print(sql_query)
             c.execute(sql_query)
         conn.commit()

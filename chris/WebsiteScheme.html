@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Scheduler</title>
+    <link rel="stylesheet" href="formstyle.css">
+    
+</head>
+<body>
+<p>Calendar goes here (Will only refresh calendar when prompted, hash table? Matplotlib?)</p>
+<img src="" width="500" height="300">
+<h1>Let's pick out some classes</h1>
+<form method="post" action="https://cs101.cs.uchicago.edu/~sterner/show-data.php">
+    <fieldset>
+        <legend> Course information </legend>
+        Course title
+        <input class="info" id="lastname" type="text" name="lastname">
+        Department
+        <select class="info" id="state" name="state">
+            <option value="ADMN">Administration</option>
+            <option value="AKKD">Akkadian</option>
+            <option value="AMER">American Culture</option>
+            <option value="ASLG">American Sign Language</option>
+            <option value="AANL">Ancient Anatolian Languages</option>
+            <option value="ANCM">Ancient Mediterranean World</option>
+            <option value="ANCC">Anesthesia/Critical Care</option>
+            <option value="AASR">Anthro/Sociology of Religion</option>
+            <option value="ANTH">Anthropology</option>
+            <option value="ARAB">Arabic</option>
+            <option value="ARAM">Aramaic</option>
+            <option value="ARME">Armenian</option>
+            <option value="ARTH">Art History</option>
+            <option value="ASTR">Astronomy/Astrophysics</option>
+            <option value="BANG">Bangla</option>
+            <option value="BASQ">Basque</option>
+            <option value="BIBL">Biblical Studies</option>
+            <option value="BPRO">Big Problems</option>
+            <option value="BCMB">Biochemistry/Molecular Biology</option>
+            <option value="BIOS">Biological Sciences (College)</option>
+            <option value="BSDG">Biological Sciences (Graduate)</option>
+            <option value="BPHS">Biophysical Sciences</option>
+            <option value="BCSN">Bosnian/Croatian/Serbian</option>
+            <option value="BUSN">Business</option>
+            <option value="CRSH">CIC CourseShare</option>
+            <option value="CABI">Cancer Biology</option>
+            <option value="CATA">Catalan</option>
+            <option value="CHEM">Chemistry</option>
+            <option value="CCTE">Chicago Center for Teaching</option>
+            <option value="CHIN">Chinese</option>
+            <option value="CMST">Cinema/Media Studies</option>
+            <option value="CLCV">Classical Civilization</option>
+            <option value="CLAS">Classics</option>
+            <option value="CCTS">Clinical/Translational Science</option>
+            <option value="JWSG">Committee on Jewish Studies</option>
+            <option value="CHRM">Committee on the Ministry</option>
+            <option value="CAPP">Comp Analysis/Public Pol</option>
+            <option value="CRES">Comp Race/Ethnic Studies</option>
+            <option value="CHDV">Comparative Human Development</option>
+            <option value="CMLT">Comparative Literature</option>
+            <option value="CPNS">Computational Neuroscience</option>
+            <option value="MACS">Computational Social Science</option>
+            <option value="CMSC">Computer Science</option>
+            <option value="MPCS">Computer Science Masters</option>
+            <option value="CHSS">Conceptual/Hist Studies of Sci</option>
+            <option value="CRWR">Creative Writing</option>
+            <option value="DVBI">Developmental Biology</option>
+            <option value="CDIN">Disciplinary Innovation</option>
+            <option value="EALC">East Asian Languages/Civ</option>
+            <option value="ECEV">Ecology/Evolution</option>
+            <option value="ECON">Economics</option>
+            <option value="EGPT">Egyptian</option>
+            <option value="EMED">Emergency Medicine</option>
+            <option value="ENGL">English Language/Literature</option>
+            <option value="ENSC">Environmental Sciences</option>
+            <option value="ENST">Environmental Studies</option>
+            <option value="EVOL">Evolutionary Biology</option>
+            <option value="FMED">Family Medicine</option>
+            <option value="FINM">Financial Mathematics</option>
+            <option value="KNOW">Formation of Knowledge</option>
+            <option value="FREN">French</option>
+            <option value="FNDL">Fundamentals: Issues/Texts</option>
+            <option value="GNSE">Gender/Sexuality Studies</option>
+            <option value="SLAV">General Slavic</option>
+            <option value="GENE">Genetics</option>
+            <option value="GEOG">Geographical Studies</option>
+            <option value="GEOS">Geophysical Sciences</option>
+            <option value="GRMN">German</option>
+            <option value="GLST">Global Studies</option>
+            <option value="GREK">Greek</option>
+            <option value="HIPS">HIPS</option>
+            <option value="HEBR">Hebrew</option>
+            <option value="HIND">Hindi</option>
+            <option value="HIST">History</option>
+            <option value="HCHR">History of Christianity</option>
+            <option value="HCUL">History of Culture</option>
+            <option value="HIJD">History of Judaism</option>
+            <option value="HREL">History of Religions</option>
+            <option value="HNUT">Hum Nutrition/Nutritional Bio</option>
+            <option value="HGEN">Human Genetics</option>
+            <option value="HMRT">Human Rights</option>
+            <option value="HUMA">Humanities</option>
+            <option value="ISHU">Humanities Interdisc Studies</option>
+            <option value="IMMU">Immunology</option>
+            <option value="ISTP">Interdisc Scientist Training</option>
+            <option value="INRE">International Relations</option>
+            <option value="INST">International Studies</option>
+            <option value="ISLM">Islamic Studies</option>
+            <option value="ITAL">Italian</option>
+            <option value="JAPN">Japanese</option>
+            <option value="JWSC">Jewish Studies</option>
+            <option value="KAZK">Kazak</option>
+            <option value="KORE">Korean</option>
+            <option value="EXAM">Language Reading Exam</option>
+            <option value="LATN">Latin</option>
+            <option value="LACS">Latin Amer/Caribbean Studies</option>
+            <option value="LLSO">Law/Letters/Society</option>
+            <option value="LAWS">Laws</option>
+            <option value="LING">Linguistics</option>
+            <option value="MSCA">M.S. in Analytics</option>
+            <option value="MSBI">M.S. in Biomedical Informatics</option>
+            <option value="MSTR">M.S. in Threat/Response Mgmt</option>
+            <option value="MAPH">MAPH (MA in Humanities)</option>
+            <option value="MAPS">MAPSS (MA in Social Sciences)</option>
+            <option value="MDVS">MDIV Special Courses</option>
+            <option value="MARA">Marathi</option>
+            <option value="MLAP">Master of Liberal Arts</option>
+            <option value="MATH">Mathematics</option>
+            <option value="MPHY">Medical Physics</option>
+            <option value="MEDC">Medicine</option>
+            <option value="MICR">Microbiology</option>
+            <option value="CMES">Middle Eastern Studies</option>
+            <option value="MOGK">Modern Greek</option>
+            <option value="MENG">Molecular Engineering</option>
+            <option value="MGCB">Molecular Genetics/Cell Bio</option>
+            <option value="MOMN">Molecular Metabolism/Nutrition</option>
+            <option value="MPMM">Molecular Pathogenesis/Med</option>
+            <option value="MUSI">Music</option>
+            <option value="NEAA">Near Eastern Art/Archeology</option>
+            <option value="NEHC">Near Eastern History/Civ</option>
+            <option value="NELG">Near Eastern Languages</option>
+            <option value="NELC">Near Eastern Languages/Civ</option>
+            <option value="NPHP">Neuro/Pharma/Physio</option>
+            <option value="NURB">Neurobiology</option>
+            <option value="NEUR">Neurobiology Department</option>
+            <option value="NURL">Neurology</option>
+            <option value="NCDV">New Collegiate Division</option>
+            <option value="NTEC">New Testament/ECL</option>
+            <option value="NORW">Norwegian</option>
+            <option value="OBGY">Obstetrics/Gynecology</option>
+            <option value="OPTH">Ophthalmology/Visual Sciences</option>
+            <option value="ORGB">Organismal Biology/Anatomy</option>
+            <option value="ORTH">Orthopaedic Surgery/Rehab Med</option>
+            <option value="PALI">Pali</option>
+            <option value="PATH">Pathology</option>
+            <option value="PEDS">Pediatrics</option>
+            <option value="PERS">Persian</option>
+            <option value="PHAR">Pharmacology/Physiological Sci</option>
+            <option value="PHIL">Philosophy</option>
+            <option value="DVPR">Philosophy of Religions</option>
+            <option value="PHSC">Physical Science</option>
+            <option value="PSMS">Physical Sciences Masters</option>
+            <option value="PHYS">Physics</option>
+            <option value="POLI">Polish</option>
+            <option value="PLSC">Political Science</option>
+            <option value="PORT">Portuguese</option>
+            <option value="DVSR">Psych/Sociology of Religion</option>
+            <option value="PSCR">Psychiatry</option>
+            <option value="PSYC">Psychology</option>
+            <option value="PBHS">Public Health Sciences</option>
+            <option value="PBPL">Public Policy Studies (PBPL)</option>
+            <option value="PPHA">Public Policy Studies (PPHA)</option>
+            <option value="RCON">Radiation/Cellular Oncology</option>
+            <option value="RADI">Radiology</option>
+            <option value="RLIT">Religion/Literature</option>
+            <option value="RAME">Religions in America</option>
+            <option value="RETH">Religious Ethics</option>
+            <option value="RLST">Religious Studies</option>
+            <option value="REMS">Ren/Early Modern Studies</option>
+            <option value="RLLT">Romance Languages/Literature</option>
+            <option value="RUSS">Russian</option>
+            <option value="REES">Russian/East European Studies</option>
+            <option value="PRAC">SSA Field Practicum</option>
+            <option value="SANS">Sanskrit</option>
+            <option value="SOSC">Social Sciences</option>
+            <option value="SSAD">Social Service Administration</option>
+            <option value="SCTH">Social Thought</option>
+            <option value="SOCI">Sociology</option>
+            <option value="SALC">South Asian Languages/Civ</option>
+            <option value="SPAN">Spanish</option>
+            <option value="SPCR">Special Courses</option>
+            <option value="DVSC">Special Courses in Divinity</option>
+            <option value="NOND">Special Non-Degree</option>
+            <option value="STAT">Statistics</option>
+            <option value="SABR">Study Abroad</option>
+            <option value="SUMR">Sumerian</option>
+            <option value="SURG">Surgery</option>
+            <option value="SWAH">Swahili</option>
+            <option value="TAML">Tamil</option>
+            <option value="TAPS">Theater/Performance Studies</option>
+            <option value="THEO">Theology</option>
+            <option value="TBTN">Tibetan</option>
+            <option value="TTIC">Toyota Tech Inst at Chicago</option>
+            <option value="TURK">Turkish</option>
+            <option value="UGAR">Ugaritic</option>
+            <option value="UTEP">Urban Teacher Education</option>
+            <option value="URDU">Urdu</option>
+            <option value="VIRO">Virology</option>
+            <option value="ARTV">Visual Arts</option>
+        </select>
+        Course Number (e.g. 10100)
+        <input class="info" id="firstname" type="text" name="firstname">
+        Search Course Description
+        <input class="info" id="address" type="text" name="address">
+        Professor
+        <input class="info" id="firstname" type="text" name="firstname">
+    </fieldset>
+
+    <fieldset>
+        <legend>Eval info</legend>
+        Average Number of hours spent
+        <input class="info" id="firstname" type="text" name="firstname">
+        Max Number of hours spent
+        <input class="info" id="firstname" type="text" name="firstname">
+        Minimum Number of Hours spent
+        <input class="info" id="firstname" type="text" name="firstname">
+        Overall professor agreeability
+        <select class="info" id="state" name="state">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        Course Organization
+        <select class="info" id="state" name="state">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        Taught well 
+        <select class="info" id="state" name="state">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+
+    </fieldset>
+
+    <fieldset id="checks">
+        Monday
+        <input type="checkbox" name="Interest[]" value="member">
+        Tuesday
+        <input type="checkbox" name="Interest[]" value="newsletter">
+        Wednesday
+        <input type="checkbox" name="Interest[]" value="preshow">
+        Thursday
+        <input type="checkbox" name="Interest[]" value="preshow">
+        Friday
+        <input type="checkbox" name="Interest[]" value="preshow">
+        Saturday
+        <input type="checkbox" name="Interest[]" value="preshow">
+        Sunday
+        <input type="checkbox" name="Interest[]" value="preshow">
+    </fieldset>
+    <input type="submit" value="Query!">
+</form>
+    <h2> Which classes would you like to add to your schedule?</h2>
+    <ol>
+        <li>Class 1 | CMSC | 12200 | MWF | 8:00 | 9:00 <input type="button" value="Add"> this will immediately visualize it on calendar</li>
+        <p><input type="button" value="Evals at a glance"> This will generate a page that nicely plots/charts/graphs eval information, perhaps instructor picture?</p>
+        <li>Class 2 | CMSC | 12200 | MWF | 1:00 | 2:00 <input type="button" value="Add"></li>
+        <input type="button" value="Evals at a glance">
+
+    </ol>
+    <input type="button" value="Download Calendar">
+    <input type="button" value="Clear Calendar">
+
+<form>
+
+</form>
+<script src="form.js"></script>
+</body>
+</html>

@@ -38,10 +38,7 @@ import sqlite3
     c.execute(j)
     c.close()
 
-COUNTER = 0
 '''
-
-COUNTER = 0
 
 
 def get_course_info(soup, index):
@@ -65,14 +62,15 @@ def get_course_info(soup, index):
 
     # Get department, course number, section number, and course ID
     intermediate_list = soup.find_all(class_=["label label-success", "label label-default"])
-    intermediate = intermediate_list[-1]
+    for item in intermediate_list:
+        print(item.text)
+    intermediate = intermediate_list[index]
     information = intermediate.parent.text
+    print(information)
     dept = re.search("[A-Z]{4}", information)
     course_nums = re.findall("[0-9]{5}", information)
     course_num = course_nums[0]
-    global COUNTER
-    COUNTER += 1
-    course_id = COUNTER
+    course_id = course_nums[1]
     section_num = re.search("[0-9]* ", information)
 
     class_info_dict["CourseNum"] = course_num
@@ -83,16 +81,28 @@ def get_course_info(soup, index):
 
     total_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR2$"+str(index))
     if total_enrollment is not None:
-        text = total_enrollment.text
-        numbers = text[18:]
-        class_info_dict["Total Enrollment"] = numbers
+        total_enrollment = total_enrollment.text
+        total_current = re.findall("[\d]+", total_enrollment)
+        current = total_current[0]
+        total = total_current[1]
+        class_info_dict["Current Enrollment"] = int(current)
+        class_info_dict["Total Enrollment"] = int(total)
 
      
     section_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR1$"+str(index))
     if section_enrollment is not None:
-        text = section_enrollment.text
-        numbers = text[20:]
-        class_info_dict["Section Enrollment"] = numbers
+        section_enrollment = section_enrollment.text
+        total_current = re.findall("[\d]+", section_enrollment)
+        current = total_current[0]
+        total = total_current[1]
+
+
+        #current_enrollment = re.search("[\d]+\/", section_enrollment).group()
+        #current_enrollment = current_enrollment[:-1]
+        #total_enrollment = re.search("^\/[\d]+", section_enrollment).group()
+        #total_enrollment = total_enrollment[1:]
+        class_info_dict["Current Section Enrollment"] = int(current)
+        class_info_dict["Total Section Enrollment"] = int(total)
 
 
     prof = soup.find(class_="ps_box-value", id="MTG$0")
@@ -217,7 +227,7 @@ def create_list():
     #c = conn.cursor()
 
     #for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
-    for i in range(9,10): 
+    for i in range(10,11): 
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
         el.find_elements_by_tag_name('option')[i+1].click()  # click a dropdown menu item
         submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") #avoid stale element exception
@@ -227,7 +237,8 @@ def create_list():
             flag = True
             while(flag):
                 find = browser.find_element_by_id("win0divUC_RSLT_NAV_WRK_HTMLAREA$0")
-                w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
+                sleep(5)
+                #w = wait.until(EC.element_to_be_clickable((By.ID, "win0divUC_RSLT_NAV_WRK_HTMLAREA$0")))
                 class_desc= browser.find_elements_by_css_selector("tr.ps_grid-row.psc_rowact")
                 for j in range(len(class_desc[1:-4])):
                     find = browser.find_element_by_id("win0divUC_RSLT_NAV_WRK_HTMLAREA$0")

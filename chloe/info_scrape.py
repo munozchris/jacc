@@ -23,7 +23,8 @@ def make_table():
     c = conn.cursor()
     t = "DROP TABLE IF EXISTS CourseInfo;"
     t2 = "DROP TABLE IF EXISTS ProfTable;"
-    t3 = "DROP TABLE IF EXISTS MeetingPatterns"
+    t3 = "DROP TABLE IF EXISTS SectionInfo"
+    t4 = "DROP TABLE IF EXISTS Descriptions"
 
     CourseInfo = "CREATE TABLE CourseInfo(\n\
         CourseId INT(10000) Primary Key,\n\
@@ -38,7 +39,7 @@ def make_table():
 
     SectionInfo = "CREATE TABLE SectionInfo(\n\
             SectionId INT(10000) Primary Key,\n\
-            CourseId INT(10000) Foreign Key,\n\
+            CourseId INT(10000),\n\
             Sect TEXT,\n\
             Professor TEXT,\n\
             Days1 VARCHAR(100),\n\
@@ -53,21 +54,23 @@ def make_table():
     
     ProfTable = "CREATE TABLE ProfTable(\n\
                 Professor VARCHAR(1000),\n\
-                CourseId INT(10000) Foreign Key,\n\
-                SectionId INT(1000) Foreign Key);"
+                CourseId INT(10000),\n\
+                SectionId INT(1000));"
 
 
     DescTable = "CREATE TABLE Descriptions(\n\
-                        CourseId INT(10000) Foreign Key,\n\
+                        CourseId INT(10000),\n\
                         Description TEXT);"
 
 
     c.execute(t)
     c.execute(t2)
     c.execute(t3)
+    c.execute(t4)
     c.execute(CourseInfo)
+    c.execute(SectionInfo)
     c.execute(ProfTable)
-    c.execute(MeetingPatterns)
+    c.execute(DescTable)
     c.close()
 
 
@@ -79,14 +82,14 @@ def get_course_info(soup, index):
     '''
 
     l = ["CourseId", "CourseNum", "Dept", "Sect", "Description","Title", "Professors",
-         "Days1", "Days2" "StartTime1", "StartTime2" "EndTime1", "Endtime2", "EvalLinks"]
+         "Days1", "Days2" "StartTime1", "StartTime2" "EndTime1", "EndTime2", "EvalLinks"]
 
 
     class_info_dict = {"Professors": [], "Days1": None, "Days2": None, "CourseId": None, "SectionId": None, "Dept": None, "Title": None,
                         "CourseNum": None, "Sect": None, "Description": None, "StartTime1": None,
-                        "StartTime2": None, "EndTime1": None, "Endtime2": None, "StartDate": None,
-                        "EndDate": None, "EvalLinks": [], "Total Enrollment": None, "Current Total Enrollment": None,
-                        "Section Enrollment": None, "Total Section Enrollment": None}
+                        "StartTime2": None, "EndTime1": None, "EndTime2": None, "StartDate": None,
+                        "EndDate": None, "EvalLinks": [], "TotalEnrollment": None, "CurrentTotalEnrollment": None,
+                        "SectionEnrollment": None, "TotalSectionEnrollment": None}
 
 
 
@@ -134,8 +137,8 @@ def get_course_info(soup, index):
         if len(total_current) != 0:
             current = total_current[0]
             total = total_current[1]
-            class_info_dict["Current Total Enrollment"] = int(current)
-            class_info_dict["Total Enrollment"] = int(total)
+            class_info_dict["CurrentTotalEnrollment"] = int(current)
+            class_info_dict["TotalEnrollment"] = int(total)
 
      
     section_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR1$"+str(index))
@@ -145,8 +148,8 @@ def get_course_info(soup, index):
         if len(total_current) != 0:
             current = total_current[0]
             total = total_current[1]
-            class_info_dict["Current Section Enrollment"] = int(current)
-            class_info_dict["Total Section Enrollment"] = int(total)
+            class_info_dict["CurrentSectionEnrollment"] = int(current)
+            class_info_dict["TotalSectionEnrollment"] = int(total)
 
 
     timeframe = soup.find(class_="ps_box-value", id="MTG_DATE$0")
@@ -347,33 +350,33 @@ def sql_commit_(class_dict):
                         "StartTime1", "StartTime2", "EndTime1", "EndTime2", 
                         "SectionEnroll", "CurrentSectionEnroll"]
 
-    professor_list = ["CourseId", "Professor", "Dept", "CourseNum", "Sect"]
+    professor_list = ["CourseId", "Professors", "Dept", "CourseNum", "Sect"]
 
     description_list = ["CourseId", "Description"]
 
-    # First deal with Course Info table
-
-    sql_query = "INSERT INTO CourseInfo (CourseId, CourseNum, Dept, Title, TotalEnroll, \
-                    CurrentTotalEnroll, StartDate, EndDate, EvalLinks values \
-                    (?, ?, ?, ?, ?, ?, ?, ?, ?), ON DUPLICATE KEY UPDATE CourseId = ?"
-
-    c.excecute(sql_query, class_dict["CourseId"], class_dict["CourseNum"], 
-                            class_dict["Dept"], class_dict["Title"], class_dict["TotalEnroll"],
-                            class_dict["CurrentTotalEnroll"], class_dict["StartDate"],
-                            class_dict["EndDate"], class_dict["EvalLinks"], class_dict["CourseId"])
-
-    conn.commit()
-    
-    # Now the section info table
+    # Section table
 
     sql_query = "INSERT INTO SectionInfo (SectionId, CourseId, Sect, Professor, Days1, Days2, \
                     StartTime1, StartTime2, EndTime1, EndTime2, SectionEnroll, \
-                    CurrentSectionEnroll) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    CurrentSectionEnroll) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-    c.excute(sql_query, class_dict["SectionId"], class_dict["CourseId"], class_dict["Sect"],
-                class_dict["Professor"], class_dict["Days1"], class_dict["Days2"], 
+    c.execute(sql_query, (class_dict["SectionId"], class_dict["CourseId"], class_dict["Sect"],
+                class_dict["Professors"], class_dict["Days1"], class_dict["Days2"], 
                 class_dict["StartTime1"], class_dict["StartTime2"], class_dict["EndTime1"], 
-                class_dict["EndTime2"], class_dict["SectionEnroll"], class_dict["CurrentSectionEnroll"])
+                class_dict["EndTime2"], class_dict["SectionEnrollment"], class_dict["CurrentSectionEnrollment"]))
+
+    conn.commit()
+
+    # Course Info table
+
+    sql_query = "INSERT IGNORE INTO CourseInfo (CourseId, CourseNum, Dept, Title, TotalEnroll, \
+                    CurrentTotalEnroll, StartDate, EndDate, EvalLinks) VALUES \
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+    c.execute(sql_query, (class_dict["CourseId"], class_dict["CourseNum"], 
+                            class_dict["Dept"], class_dict["Title"], class_dict["TotalEnrollment"],
+                            class_dict["CurrentTotalEnrollment"], class_dict["StartDate"],
+                            class_dict["EndDate"], class_dict["EvalLinks"]))
 
     conn.commit()
 
@@ -382,16 +385,16 @@ def sql_commit_(class_dict):
 
     for prof in class_dict['Professors']:
         c.execute("INSERT INTO ProfTable (Professor, CourseId, SectionId)\
-                   VALUES (?, ?, ?)", (prof, class_dict["CourseId"], class_dict["SectionId"]))                             
+                   VALUES (%s, %d, %s)", (prof, class_dict["CourseId"], class_dict["SectionId"]))                             
         
         conn.commit()
 
     # Descrption table
 
-    sql_query = "INSERT INTO Description (CourseId, Description) VALUES (?, ?) ON DUPLICATE KEY \
+    sql_query = "INSERT INTO Description (CourseId, Description) VALUES (%d, %s) ON DUPLICATE KEY \
                 UPDATE Descrption = ?"
 
-    c.execute(sql_query, class_dict["CourseId"], class_dict["Descrption"], class_dict["Descrption"])
+    c.execute(sql_query, (class_dict["CourseId"], class_dict["Description"], class_dict["Description"]))
 
     conn.commit()
 

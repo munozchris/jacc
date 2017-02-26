@@ -27,46 +27,40 @@ def make_table():
 
     CourseInfo = "CREATE TABLE CourseInfo(\n\
         CourseId INT(10000) Primary Key,\n\
-        SectionId INT(10000),\n\
         Dept VARCHAR(4),\n\
         CourseNum TEXT,\n\
-        Sect TEXT,\n\
         Title TEXT,\n\
         EvalLinks TEXT,\n\
-        Days1 VARCHAR(100),\n\
-        Days2 VARCHAR(100),\n\
-        StartTime1 INT,\n\
-        StartTime2 INT,\n\
-        EndTime1 INT,\n\
-        EndTime2 INT,\n\
-        SectionEnroll INT(10),\n\
-        CurrentSectionEnroll INT(10),\n\
         TotalEnroll INT(10),\n\
         CurrentTotalEnroll INT(10),\n\
         StartDate VARCHAR(15),\n\
         EndDate VARCHAR(15));"
+
+    SectionInfo = "CREATE TABLE SectionInfo(\n\
+            SectionId INT(10000) Primary Key,\n\
+            CourseId INT(10000) Foreign Key,\n\
+            Sect TEXT,\n\
+            Professor TEXT,\n\
+            Days1 VARCHAR(100),\n\
+            Days2 VARCHAR(100),\n\
+            StartTime1 INT,\n\
+            StartTime2 INT,\n\
+            EndTime1 INT,\n\
+            EndTime2 INT,\n\
+            SectionEnroll INT(10),\n\
+            CurrentSectionEnroll INT(10));"
+    
     
     ProfTable = "CREATE TABLE ProfTable(\n\
-                CourseId INT(10000),\n\
                 Professor VARCHAR(1000),\n\
-                Dept VARCHAR(4),\n\
-                CourseNum TEXT,\n\
-                Sect TEXT);"
+                CourseId INT(10000) Foreign Key,\n\
+                SectionId INT(1000) Foreign Key);"
 
-    MeetingPatterns = "CREATE TABLE MeetingPatterns(\n\
-                        CourseId INT(10000),\n\
-                        Days1 VARCHAR(100),\n\
-                        Days2 VARCHAR(100),\n\
-                        StartTime1 TEXT,\n\
-                        StartTime2 TEXT,\n\
-                        EndTime1 TEXT,\n\
-                        EndTime2 TEXT,\n\
-                        StartDate VARCHAR(15),\n\
-                        EndDate VARCHAR(15));"
 
     DescTable = "CREATE TABLE Descriptions(\n\
-                        CourseId INT(10000),\n\
+                        CourseId INT(10000) Foreign Key,\n\
                         Description TEXT);"
+
 
     c.execute(t)
     c.execute(t2)
@@ -320,12 +314,9 @@ def scrape():
                     soup = bs4.BeautifulSoup(html, "lxml")
 
                     class_dict = get_course_info(soup, j)
-                    print(class_dict)
+                    #print(class_dict)
                     sql_commit_(class_dict)
-                    #list_of_class_dicts.append(class_dict)
-                    #c.execute("INSERT INTO employees (first_name) VALUES (%s)", ('Jane'))
-                    #cnx.commit()
-                    
+                 
                     ret = wait.until(EC.visibility_of_element_located((By.ID, "UC_CLS_DTL_WRK_RETURN_PB$0")))
                     ret_btn = browser.find_element_by_id("UC_CLS_DTL_WRK_RETURN_PB$0")
                     ret_btn.click()
@@ -348,26 +339,61 @@ def sql_commit_(class_dict):
     conn = sqlite3.connect("test.db")
     c = conn.cursor()
 
-    course_table_list = ["CourseId", "CourseNum", "Dept", "Sect", "Title", 
-                    "StartTime1", "StartTime2", "EndTime1", "EndTime2", "SectionEnroll",
-                    "CurrentSectionEnroll", "TotalEnroll", "CurrentTotalEnroll", 
-                    "StartDate", "EndDate", "Days1", "Days2", "EvalLinks"]
+    course_info_list = ["CourseId", "CourseNum", "Dept", "Title", 
+                        "TotalEnroll", "CurrentTotalEnroll", 
+                        "StartDate", "EndDate", "EvalLinks"]
 
-    c.execute("INSERT INTO CourseInfo (CourseId) VALUES (?)", (str(class_dict["CourseId"]),))
-    for entry in class_dict:
-        if entry in l:
-            sql_query = '''UPDATE CourseInfo SET {} = "{}" WHERE CourseId = "{}";'''.format(entry, class_dict[entry], class_dict['CourseId'])
-            c.execute(sql_query)
-        conn.commit()
+    section_info_list = ["SectionId", "CourseId", "Sect", "Days1", "Days2"
+                        "StartTime1", "StartTime2", "EndTime1", "EndTime2", 
+                        "SectionEnroll", "CurrentSectionEnroll"]
+
+    professor_list = ["CourseId", "Professor", "Dept", "CourseNum", "Sect"]
+
+    description_list = ["CourseId", "Description"]
+
+    # First deal with Course Info table
+
+    sql_query = "INSERT INTO CourseInfo (CourseId, CourseNum, Dept, Title, TotalEnroll, \
+                    CurrentTotalEnroll, StartDate, EndDate, EvalLinks values \
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?), ON DUPLICATE KEY UPDATE CourseId = ?"
+
+    c.excecute(sql_query, class_dict["CourseId"], class_dict["CourseNum"], 
+                            class_dict["Dept"], class_dict["Title"], class_dict["TotalEnroll"],
+                            class_dict["CurrentTotalEnroll"], class_dict["StartDate"],
+                            class_dict["EndDate"], class_dict["EvalLinks"], class_dict["CourseId"])
+
+    conn.commit()
+    
+    # Now the section info table
+
+    sql_query = "INSERT INTO SectionInfo (SectionId, CourseId, Sect, Professor, Days1, Days2, \
+                    StartTime1, StartTime2, EndTime1, EndTime2, SectionEnroll, \
+                    CurrentSectionEnroll) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+    c.excute(sql_query, class_dict["SectionId"], class_dict["CourseId"], class_dict["Sect"],
+                class_dict["Professor"], class_dict["Days1"], class_dict["Days2"], 
+                class_dict["StartTime1"], class_dict["StartTime2"], class_dict["EndTime1"], 
+                class_dict["EndTime2"], class_dict["SectionEnroll"], class_dict["CurrentSectionEnroll"])
+
+    conn.commit()
+
+
+    #Professor table
 
     for prof in class_dict['Professors']:
-        c.execute("INSERT INTO ProfTable (CourseId, Professor, Dept, CourseNum, Sect)\
-                   VALUES (?, ?, ?, ?, ?)", (class_dict["CourseId"], 
-                                            prof, class_dict["Dept"],
-                                            class_dict["CourseNum"], 
-                                            class_dict["Sect"]))
+        c.execute("INSERT INTO ProfTable (Professor, CourseId, SectionId)\
+                   VALUES (?, ?, ?)", (prof, class_dict["CourseId"], class_dict["SectionId"]))                             
+        
         conn.commit()
 
+    # Descrption table
+
+    sql_query = "INSERT INTO Description (CourseId, Description) VALUES (?, ?) ON DUPLICATE KEY \
+                UPDATE Descrption = ?"
+
+    c.execute(sql_query, class_dict["CourseId"], class_dict["Descrption"], class_dict["Descrption"])
+
+    conn.commit()
 
 
 make_table()

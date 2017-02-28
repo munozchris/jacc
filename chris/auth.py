@@ -25,7 +25,7 @@ with requests.Session() as c:
     # Post (submit) user information and log in
     p = c.post(url2, data=login_data)
 
-    # This is a locates and gets the encrypted login value of user/pass combo on an intermediary page
+    # This locates and gets the encrypted login value of user/pass combo on an intermediary page
     soup = bs4.BeautifulSoup(p.text, "lxml")
     encrypted_tag = soup.find(attrs={"name":"SAMLResponse"})
     login_info = encrypted_tag["value"]

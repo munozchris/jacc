@@ -23,52 +23,54 @@ def make_table():
     c = conn.cursor()
     t = "DROP TABLE IF EXISTS CourseInfo;"
     t2 = "DROP TABLE IF EXISTS ProfTable;"
-    t3 = "DROP TABLE IF EXISTS MeetingPatterns"
+    t3 = "DROP TABLE IF EXISTS SectionInfo"
+    t4 = "DROP TABLE IF EXISTS Description"
 
     CourseInfo = "CREATE TABLE CourseInfo(\n\
         CourseId INT(10000) Primary Key,\n\
         Dept VARCHAR(4),\n\
         CourseNum TEXT,\n\
-        Sect TEXT,\n\
         Title TEXT,\n\
-        Description TEXT,\n\
-        Days1 VARCHAR(100),\n\
-        Days2 VARCHAR(100),\n\
-        StartTime1 INT,\n\
-        StartTime2 INT,\n\
-        EndTime1 INT,\n\
-        EndTime2 INT,\n\
-        SectionEnroll INT(10),\n\
-        CurrentSectionEnroll INT(10),\n\
+        EvalLinks TEXT,\n\
         TotalEnroll INT(10),\n\
         CurrentTotalEnroll INT(10),\n\
         StartDate VARCHAR(15),\n\
         EndDate VARCHAR(15));"
+
+    SectionInfo = "CREATE TABLE SectionInfo(\n\
+            SectionId INT(10000) Primary Key,\n\
+            CourseId INT(10000),\n\
+            Sect TEXT,\n\
+            Professor TEXT,\n\
+            Days1 VARCHAR(100),\n\
+            Days2 VARCHAR(100),\n\
+            StartTime1 INT,\n\
+            StartTime2 INT,\n\
+            EndTime1 INT,\n\
+            EndTime2 INT,\n\
+            SectionEnroll INT(10),\n\
+            CurrentSectionEnroll INT(10));"
+    
     
     ProfTable = "CREATE TABLE ProfTable(\n\
-                CourseId INT(10000),\n\
                 Professor VARCHAR(1000),\n\
-                Dept VARCHAR(4),\n\
-                CourseNum TEXT,\n\
-                Sect TEXT);"
+                CourseId INT(10000),\n\
+                SectionId INT(1000));"
 
-    MeetingPatterns = "CREATE TABLE MeetingPatterns(\n\
+
+    DescTable = "CREATE TABLE Description(\n\
                         CourseId INT(10000),\n\
-                        Days1 VARCHAR(100),\n\
-                        Days2 VARCHAR(100),\n\
-                        StartTime1 TEXT,\n\
-                        StartTime2 TEXT,\n\
-                        EndTime1 TEXT,\n\
-                        EndTime2 TEXT,\n\
-                        StartDate VARCHAR(15),\n\
-                        EndDate VARCHAR(15));"
+                        Description TEXT);"
+
 
     c.execute(t)
     c.execute(t2)
     c.execute(t3)
+    c.execute(t4)
     c.execute(CourseInfo)
+    c.execute(SectionInfo)
     c.execute(ProfTable)
-    c.execute(MeetingPatterns)
+    c.execute(DescTable)
     c.close()
 
 
@@ -80,14 +82,14 @@ def get_course_info(soup, index):
     '''
 
     l = ["CourseId", "CourseNum", "Dept", "Sect", "Description","Title", "Professors",
-         "Days1", "Days2" "StartTime1", "StartTime2" "EndTime1", "Endtime2", "EvalLinks"]
+         "Days1", "Days2" "StartTime1", "StartTime2" "EndTime1", "EndTime2", "EvalLinks"]
 
 
-    class_info_dict = {"Professors": [], "Days1": None, "Days2": None, "CourseId": None, "Dept": None, "Title": None,
+    class_info_dict = {"Professors": [], "Days1": None, "Days2": None, "CourseId": None, "SectionId": None, "Dept": None, "Title": None,
                         "CourseNum": None, "Sect": None, "Description": None, "StartTime1": None,
-                        "StartTime2": None, "EndTime1": None, "Endtime2": None, "StartDate": None,
-                        "EndDate": None, "EvalLinks": [], "Total Enrollment": 0, "Current Total Enrollment": 0,
-                        "Section Enrollment": 0, "Total Section Enrollment": 0}
+                        "StartTime2": None, "EndTime1": None, "EndTime2": None, "StartDate": None,
+                        "EndDate": None, "EvalLinks": [], "TotalEnrollment": None, "CurrentTotalEnrollment": None,
+                        "SectionEnrollment": None, "TotalSectionEnrollment": None}
 
 
 
@@ -98,47 +100,56 @@ def get_course_info(soup, index):
 
 
     # Get department, course number, section number, and course ID
-    intermediate_list = soup.find_all(class_=["label label-success", "label label-default"])
+    intermediate_list = soup.find_all(class_=["label label-success", "label label-default", 
+                                                "label label-danger", "label label-warning"])
     if len(intermediate_list) != 0:
         intermediate = intermediate_list[index]
         information = intermediate.parent.text
-        dept = re.search("[A-Z]{4}", information)
+        dept = re.search("[A-Z]{4}", information).group()
         course_nums = re.findall("[0-9]{5}", information)
         course_num = course_nums[0]
-        course_id = course_nums[1]
-        section_num = re.search("[0-9]* ", information)
+        section_id = course_nums[1]
+        section_num = re.search("[0-9]+ ", information)
 
     
     if course_num is not None:
         class_info_dict["CourseNum"] = course_num
     if dept is not None:
-        class_info_dict["Dept"] = dept.group()
+        class_info_dict["Dept"] = dept
     if section_num is not None:
         class_info_dict["Sect"] = section_num.group().strip()
-    if course_id is not None:
-        class_info_dict["CourseId"] = course_id
+    if section_id is not None:
+        class_info_dict["SectionId"] = section_id
+
+
+    dept_code = ""
+    for letter in dept:
+        dept_code += str(ord(letter))
+    course_id = dept_code + course_num
+    course_id = int(course_id)
+    class_info_dict["CourseId"] = course_id
 
 
     total_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR2$"+str(index))
     if total_enrollment is not None:
         total_enrollment = total_enrollment.text
         total_current = re.findall("[\d]+", total_enrollment)
-        if total_current is not None:
+        if len(total_current) != 0:
             current = total_current[0]
             total = total_current[1]
-            class_info_dict["Current Total Enrollment"] = int(current)
-            class_info_dict["Total Enrollment"] = int(total)
+            class_info_dict["CurrentTotalEnrollment"] = int(current)
+            class_info_dict["TotalEnrollment"] = int(total)
 
      
     section_enrollment = soup.find(class_="ps_box-value", id="UC_CLSRCH_WRK_DESCR1$"+str(index))
     if section_enrollment is not None:
         section_enrollment = section_enrollment.text
         total_current = re.findall("[\d]+", section_enrollment)
-        if total_current is not None:
+        if len(total_current) != 0:
             current = total_current[0]
             total = total_current[1]
-            class_info_dict["Current Section Enrollment"] = int(current)
-            class_info_dict["Total Section Enrollment"] = int(total)
+            class_info_dict["CurrentSectionEnrollment"] = int(current)
+            class_info_dict["TotalSectionEnrollment"] = int(total)
 
 
     timeframe = soup.find(class_="ps_box-value", id="MTG_DATE$0")
@@ -170,9 +181,9 @@ def get_course_info(soup, index):
         for day in days:
             if day[0] != "T":
                 day_string += day[0]
-            elif day == "Tues":
+            if day == "Tues":
                 day_string += "T"
-            elif day == "Thu":
+            if day == "Thu":
                 day_string += "R"
         class_info_dict["Days1"] = day_string
 
@@ -191,7 +202,7 @@ def get_course_info(soup, index):
             end_time = times[1]
             hour = end_time[:2]
             minute = end_time[3:5]
-            if end_time[6:] == "PM":
+            if end_time[6:] == "PM" and hour != "12":
                 hour = str(int(hour)+12)
             end_time = int(hour+minute)
             class_info_dict["EndTime1"] = end_time
@@ -230,7 +241,7 @@ def get_course_info(soup, index):
                 end_time = times[1]
                 hour = end_time[:2]
                 minute = end_time[3:5]
-                if end_time[6:] == "PM":
+                if end_time[6:] == "PM" and hour != "12":
                     hour = str(int(hour)+12)
                 end_time = int(hour+minute)
                 class_info_dict["EndTime"+str(count)] = end_time
@@ -250,10 +261,10 @@ def get_course_info(soup, index):
 
 
 
-def create_list():
+def scrape():
     '''
-    Makes a list of dictionaries for every class, going through all departments
-    and scraping the html
+    Goes through all departments and courses and gets the course dictionary and
+    commits it to SQL
     '''
 
     url = 'https://coursesearch.uchicago.edu/psc/prdguest/EMPLOYEE/HRMS/c/UC_STUDENT_RECORDS_FL.UC_CLASS_SEARCH_FL.GBL'
@@ -270,14 +281,16 @@ def create_list():
     submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") # find the submit button
     wait = WebDriverWait(browser, 10)
 
-    select = Select(browser.find_element_by_id("UC_CLSRCH_WRK2_STRM"))
-    select.select_by_value('2174')
+    #Go to spring:
+    #select = Select(browser.find_element_by_id("UC_CLSRCH_WRK2_STRM"))
+    #select.select_by_value('2174')
     #conn = sqlite3.connect(sql_filename)
     #c = conn.cursor()
 
-    for i in range(len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
+    #for i in range(3,4):
+    for i in range(98, len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
-        el.find_elements_by_tag_name('option')[i+10].click()  # click a dropdown menu item
+        el.find_elements_by_tag_name('option')[i].click()  # click a dropdown menu item
         submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") #avoid stale element exception
         submit.click() # submit department query
         value_wait = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "ps_box-value")))
@@ -304,11 +317,9 @@ def create_list():
                     soup = bs4.BeautifulSoup(html, "lxml")
 
                     class_dict = get_course_info(soup, j)
+                    #print(class_dict)
                     sql_commit_(class_dict)
-                    #list_of_class_dicts.append(class_dict)
-                    #c.execute("INSERT INTO employees (first_name) VALUES (%s)", ('Jane'))
-                    #cnx.commit()
-                    
+                 
                     ret = wait.until(EC.visibility_of_element_located((By.ID, "UC_CLS_DTL_WRK_RETURN_PB$0")))
                     ret_btn = browser.find_element_by_id("UC_CLS_DTL_WRK_RETURN_PB$0")
                     ret_btn.click()
@@ -325,72 +336,71 @@ def create_list():
             continue
     browser.quit()
 
-    return list_of_class_dicts
 
 
 def sql_commit_(class_dict):
     conn = sqlite3.connect("test.db")
     c = conn.cursor()
 
-    l = ["CourseNum", "Dept", "Sect", "Desc","Title",
-         "Times", "StartTime", "EndTime", "SectionEnroll",
-          "TotalEnroll", "StartDate", "EndDate"]
+    course_info_list = ["CourseId", "CourseNum", "Dept", "Title", 
+                        "TotalEnroll", "CurrentTotalEnroll", 
+                        "StartDate", "EndDate", "EvalLinks"]
 
-    print(class_dict["CourseId"])
-    c.execute("INSERT INTO CourseInfo (CourseId) VALUES (?)", (str(class_dict["CourseId"]),))
-    for entry in class_dict:
-        if entry in l:
-            sql_query = '''UPDATE CourseInfo SET {} = "{}" WHERE CourseId = "{}";'''.format(entry, class_dict[entry], class_dict['CourseId'])
-            c.execute(sql_query)
-        conn.commit()
+    section_info_list = ["SectionId", "CourseId", "Sect", "Days1", "Days2"
+                        "StartTime1", "StartTime2", "EndTime1", "EndTime2", 
+                        "SectionEnroll", "CurrentSectionEnroll"]
+
+    professor_list = ["CourseId", "Professors", "Dept", "CourseNum", "Sect"]
+
+    description_list = ["CourseId", "Description"]
+
+    # Section table
+
+    sql_query = ("INSERT INTO SectionInfo (SectionId, CourseId, Sect, Professor, Days1, Days2,\
+                    StartTime1, StartTime2, EndTime1, EndTime2, SectionEnroll,\
+                    CurrentSectionEnroll) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+
+    data = (class_dict["SectionId"], class_dict["CourseId"], class_dict["Sect"],
+            str(class_dict["Professors"]), class_dict["Days1"], class_dict["Days2"], 
+            str(class_dict["StartTime1"]), str(class_dict["StartTime2"]), str(class_dict["EndTime1"]), 
+            str(class_dict["EndTime2"]), str(class_dict["SectionEnrollment"]), str(class_dict["CurrentSectionEnrollment"]))
+
+    c.execute(sql_query, data)
+
+    conn.commit()
+
+    # Course Info table
+
+    sql_query = "INSERT OR REPLACE INTO CourseInfo (CourseId, CourseNum, Dept, Title, TotalEnroll,\
+                    CurrentTotalEnroll, StartDate, EndDate, EvalLinks) VALUES\
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+    data = (class_dict["CourseId"], class_dict["CourseNum"], 
+            class_dict["Dept"], class_dict["Title"], class_dict["TotalEnrollment"],
+            class_dict["CurrentTotalEnrollment"], class_dict["StartDate"],
+            class_dict["EndDate"], class_dict["EvalLinks"])
+
+    c.execute(sql_query, data)
+
+    conn.commit()
+
+
+    #Professor table
 
     for prof in class_dict['Professors']:
-        c.execute("INSERT INTO ProfTable (CourseId, Professor, Dept, CourseNum, Sect)\
-                   VALUES (?, ?, ?, ?, ?)", (class_dict["CourseId"], 
-                                            prof, class_dict["Dept"],
-                                            class_dict["CourseNum"], 
-                                            class_dict["Sect"]))
+        c.execute("INSERT INTO ProfTable (Professor, CourseId, SectionId)\
+                   VALUES (?, ?, ?)", (prof, class_dict["CourseId"], class_dict["SectionId"]))                             
+        
         conn.commit()
 
+    # Descrption table
+
+    sql_query = "INSERT OR REPLACE INTO Description (CourseId, Description) VALUES (?, ?)"
+
+    c.execute(sql_query, (class_dict["CourseId"], class_dict["Description"]))
+
+    conn.commit()
 
 
-make_table()
-create_list()
-def me():
-    CourseInfo = "CREATE TABLE CourseInfo(\n\
-        CourseId INT(10000) Primary Key,\n\
-        Dept VARCHAR(4),\n\
-        CourseNum TEXT,\n\
-        Sect TEXT,\n\
-        Title TEXT,\n\
-        Description TEXT,\n\
-        Days1 VARCHAR(100),\n\
-        Days2 VARCHAR(100),\n\
-        StartTime1 INT,\n\
-        StartTime2 INT,\n\
-        EndTime1 INT,\n\
-        EndTime2 INT,\n\
-        SectionEnroll INT(10),\n\
-        CurrentSectionEnroll INT(10),\n\
-        TotalEnroll INT(10),\n\
-        CurrentTotalEnroll INT(10),\n\
-        StartDate VARCHAR(15),\n\
-        EndDate VARCHAR(15));"
-    
-    ProfTable = "CREATE TABLE ProfTable(\n\
-                CourseId INT(10000),\n\
-                Professor VARCHAR(1000),\n\
-                Dept VARCHAR(4),\n\
-                CourseNum TEXT,\n\
-                Sect TEXT);"
-
-    MeetingPatterns = "CREATE TABLE MeetingPatterns(\n\
-                        CourseId INT(10000),\n\
-                        Days1 VARCHAR(100),\n\
-                        Days2 VARCHAR(100),\n\
-                        StartTime1 TEXT,\n\
-                        StartTime2 TEXT,\n\
-                        EndTime1 TEXT,\n\
-                        EndTime2 TEXT,\n\
-                        StartDate VARCHAR(15),\n\
-                        EndDate VARCHAR(15));"
+#make_table()
+scrape()

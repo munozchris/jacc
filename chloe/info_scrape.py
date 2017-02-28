@@ -101,7 +101,7 @@ def get_course_info(soup, index):
 
     # Get department, course number, section number, and course ID
     intermediate_list = soup.find_all(class_=["label label-success", "label label-default", 
-                                                "label label-danger"])
+                                                "label label-danger", "label label-warning"])
     if len(intermediate_list) != 0:
         intermediate = intermediate_list[index]
         information = intermediate.parent.text
@@ -288,7 +288,7 @@ def scrape():
     #c = conn.cursor()
 
     #for i in range(3,4):
-    for i in range(2, len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
+    for i in range(98, len(el.find_elements_by_tag_name('option'))): # iterate for the length of dropdown options
         el = browser.find_element_by_id('win0divUC_CLSRCH_WRK2_SUBJECTctrl') # avoid stale element exception
         el.find_elements_by_tag_name('option')[i].click()  # click a dropdown menu item
         submit = browser.find_element_by_id("UC_CLSRCH_WRK2_SEARCH_BTN") #avoid stale element exception
@@ -402,5 +402,5 @@ def sql_commit_(class_dict):
     conn.commit()
 
 
-make_table()
+#make_table()
 scrape()

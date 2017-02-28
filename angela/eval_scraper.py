@@ -42,13 +42,15 @@ num_responses = int(str(soup.findAll('strong', text='Number of Responses:')[0].n
 eval_dict['CourseId'], eval_dict['CourseName'], eval_dict['Professors'] = course_code, course_name, formatted_instrs
 eval_dict['NumResponses'] = num_responses
 
-# Bio-type eval
-bio_time = soup.find('th', text='How many hours did you spend each week preparing for this class (including labs)? (0-9 + hours scale)').nextSibling.nextSibling:
-if bio_time is not None:
-    BIOS_eval = True
-    num_str = bio_time.contents[2]
-    num_list = re.findall(r'\d+\.\d*', num_str)
-    mean, stdv = int(num_list[0]), int(num_list[1])
+# # Bio-type eval
+# bio_time = soup.find\
+#     ('th', text='How many hours did you spend each week preparing for this class (including labs)? (0-9 + hours scale)')\
+#     .nextSibling.nextSibling
+# if bio_time is not None:
+#     BIOS_eval = True
+#     num_str = bio_time.contents[2]
+#     num_list = re.findall(r'\d+\.\d*', num_str)
+#     mean, stdv = int(num_list[0]), int(num_list[1])
 
 
 

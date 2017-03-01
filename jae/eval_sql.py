@@ -3,7 +3,8 @@
 import bs4
 import re
 from eval_sql_util import *
-
+    
+    
 ### Usage: ###
 # Chris's code call's Jae's code to generate a list of urls for each eval corresponding to a class
 # Chris's then creates a soup object for each of the links in that list
@@ -13,7 +14,7 @@ from eval_sql_util import *
 
 # this code starts based off the assumption that it has the soup object
 
-driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+# driver = webdriver.Chrome("/usr/local/bin/chromedriver")
 
 #Eval for classes w/o TA: STAT 20000
 url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790' 
@@ -25,13 +26,15 @@ url3 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?\
 #Eval for language classes: AKKD 10102
 url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
 
+handler = authenticate()
+
 def make_table():
     conn = sqlite3.connect("eval.db")
     c = conn.cursor()
     t = "DROP TABLE IF EXISTS Eval1;"
     t2 = "DROP TABLE IF EXISTS Eval2;"
-    t3 = "DROP TABLE IF EXISTS Eval3"
-    t4 = "DROP TABLE IF EXISTS Eval4"
+    t3 = "DROP TABLE IF EXISTS Eval3;"
+    t4 = "DROP TABLE IF EXISTS Eval4;"
 
     Eval1 = "CREATE TABLE Eval1(\n\
         EvalType TEXT,\n\
@@ -105,9 +108,35 @@ def make_table():
     c.execute(SectionInfo)
     c.execute(ProfTable)
     c.execute(DescTable)
-    c.close()
+    c.close()    
     
-def get_eval_info(soup):
+    
+    
+def get_eval_links(link, threshold_year = 2011):
+    get_soup(handler, link)
+    table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="evalSearchResults")
+    rows = table.findAll(lambda tag: tag.name=='tr')
+
+    # note: it's find and findAll 
+    links = []
+    for row in rows[1:]:
+        quarter = row.contents[7].text
+        year = int(re.search(r'\d{4}', quarter).group())
+        year = int(re.search(r'\d{4}', quarter).group())
+        if year > threshold_year:
+            links.append(row.td.a['href'])
+
+    abs_urls = []
+    for link in links:
+        abs_link = convert_if_relative_url(url2, link)
+        abs_urls.append(abs_link)
+
+    return abs_urls
+    
+
+
+def get_eval_info(url):
+    soup = get_soup(handler, url)
     BIOS_eval = False
     Language_eval = False
     TA_eval = False
@@ -118,20 +147,28 @@ def get_eval_info(soup):
 
     course_full = soup.find(class_="eval-page-title").text
     course_code = re.findall(r'([A-Z\s0-9]*:)(.*)', course_full)[0][0][:-1]
+    parts = re.findall(r'([A-Z]{4})(.*)', course_code)
+    dept, class_num = parts[0][0], parts[0][1][1:]
     course_name = re.findall(r'([A-Z\s0-9]*:)(.*)', course_full)[0][1][1:]
     course_section = soup.find(class_="section-title").text
     year = int(re.search(r'\d{4}', course_section).group())
 
     # splits multiple instructors
-    instr_list = str(soup.findAll('strong', text='Instructor(s):')[0].nextSibling)[1:].split(';')
+    instr_list = str(soup.findAll('strong', text='Instructor(s):')[0].nextSibling)[1:].split('; ')
     formatted_instrs = []
     for full_name in instr_list:
         name_parts = full_name.split(', ')
         formatted_instrs.append(name_parts[1] + ' ' + name_parts[0])
+    instructors_str = ''
+    for name in formatted_instrs:
+        name += ', '
+        instructors_str += name
+    instructors_str = instructors_str[:-2]
 
     num_responses = int(str(soup.findAll('strong', text='Number of Responses:')[0].nextSibling).strip())
 
-    eval_dict['CourseId'], eval_dict['CourseName'], eval_dict['Professors'] = course_code, course_name, formatted_instrs
+    eval_dict['Dept'], eval_dict['CourseNum'] = dept, int(class_num)
+    eval_dict['CourseName'], eval_dict['Professors'] = course_name, instructors_str
     eval_dict['NumResponses'], eval_dict['CourseSection'], eval_dict['Year'] = num_responses, course_section, year
 
     max_hr, med_hr, min_hr = 0, 0, 0
@@ -171,7 +208,7 @@ def get_eval_info(soup):
 
     eval_dict['MinHrs'], eval_dict['MedHrs'], eval_dict['MaxHrs'] = min_hr, med_hr, max_hr
 
-    affirm_reasonable, negative_resonable = 'null', 'null'
+    affirm_reasonable, negative_reasonable = 'null', 'null'
     motives_count = {}
     desires_count = {}
 
@@ -180,7 +217,7 @@ def get_eval_info(soup):
         affirm_num = int(re.search(r'\d+', affirm_responses).group())
         negative_responses = soup.find('h3', text='Were the time demands of this course reasonable?').nextSibling.nextSibling.contents[3].find_all('td')[3].text
         negative_num = int(re.search(r'\d+', negative_responses).group())
-        affirm_reasonable, negative_resonable = affirm_num, negative_num
+        affirm_reasonable, negative_reasonable = affirm_num, negative_num
 
         motives_th_list = soup.find('h3', text='Why did you take this course?').nextSibling.nextSibling.find_all('th')
         motives_strs = []
@@ -194,7 +231,7 @@ def get_eval_info(soup):
         for i in range(len(motives_strs)):
             motives_count[motives_strs[i]] = counts_list[i]
         
-    eval_dict['YesReasonable'], eval_dict['NoResonable'] = affirm_reasonable, negative_resonable
+    eval_dict['YesReasonable'], eval_dict['NotReasonable'] = affirm_reasonable, negative_reasonable
     if BIOS_eval:
         eval_dict['MotivesForTakingClass'] = 'null'
     else:
@@ -213,7 +250,7 @@ def get_eval_info(soup):
         for option in options_list:
             desires_strs.append(option.text)
     elif TA_eval:
-        options_list = soup.find('h3', text='In summary, I had a strong desire to take this course').find_all('th')
+        options_list = soup.find('h3', text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('th')
         desires_strs = []
         for option in options_list:
             desires_strs.append(option.text)    
@@ -224,7 +261,7 @@ def get_eval_info(soup):
             count = int(re.search(r'\d+', td.text).group())
             desires_counts.append(count)
         for i in range(len(desires_strs)):
-            desires_count[motives_strs[i]] = counts_list[i]
+            desires_count[desires_strs[i]] = counts_list[i]
     elif TA_eval:
         desires_tds = soup.find('h3', text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
         desires_counts = []
@@ -232,7 +269,7 @@ def get_eval_info(soup):
             count = int(re.search(r'\d+', td.text).group())
             desires_counts.append(count)
         for i in range(len(desires_strs)):
-            desires_count[motives_strs[i]] = counts_list[i]
+            desires_count[desires_strs[i]] = counts_list[i]
 
     if BIOS_eval:
         eval_dict['DesireToTakeCourse'] = 'null'

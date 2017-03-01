@@ -2,7 +2,7 @@
 
 import bs4
 import re
-from eval_util import *
+from eval_sql_util import *
 
 ### Usage: ###
 # Chris's code call's Jae's code to generate a list of urls for each eval corresponding to a class
@@ -15,10 +15,97 @@ from eval_util import *
 
 driver = webdriver.Chrome("/usr/local/bin/chromedriver")
 
-url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790' # eval for class w/o TA; STAT 20000
-url2 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=10451&section=01&quarter=SPG&year=2011' # eval for bio class; BIOS 10451
-url3 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' # eval for language class; AKKD 10102
-url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=53225' # eval for class w/ TA's; ARTV 10300
+#Eval for classes w/o TA: STAT 20000
+url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790' 
+#Eval for classes w/ TA: ARTV 10300
+url2 = 'https://evaluations.uchicago.edu/evaluation.php?id=53225' 
+#Eval for bio classes: BIOS 10451
+url3 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?\
+        dept=BIOS&course=10451&section=01&quarter=SPG&year=2011' 
+#Eval for language classes: AKKD 10102
+url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
+
+def make_table():
+    conn = sqlite3.connect("eval.db")
+    c = conn.cursor()
+    t = "DROP TABLE IF EXISTS Eval1;"
+    t2 = "DROP TABLE IF EXISTS Eval2;"
+    t3 = "DROP TABLE IF EXISTS Eval3"
+    t4 = "DROP TABLE IF EXISTS Eval4"
+
+    Eval1 = "CREATE TABLE Eval1(\n\
+        EvalType TEXT,\n\
+        CourseId TEXT, \n\
+        CourseName TEXT,\n\
+        CourseSection TEXT,\n\
+        #Professors 
+        Year INT,\n\
+        #Reason for taking course
+        RConcentrationReq INT, \n\
+        RCoreReq INT, \n\
+        RFacultyRec INT, \n\
+        RInstructorRep INT, \n\
+        RConvTime INT, \n\
+        #Motives for taking class
+        MStudentRec INT, \n\
+        MConcentrationElec INT, \n\
+        MConcentrationReq INT, \n\
+        MCoreReq INT, \n\
+        MFacultyRec INT, \n\
+        MInstructorRep INT, \n\
+        MConvTime INT, \n\
+        MTopicInt INT, \n\
+        #Hours spent
+        MinHrs 
+        MedHrs
+        MaxHrs
+        #TIme Commitment Reasonable 
+        TimeYes
+        TimeNo
+
+        CourseNum TEXT,\n\
+        Title TEXT,\n\
+        EvalLinks TEXT,\n\
+        TotalEnroll INT(10),\n\
+        CurrentTotalEnroll INT(10),\n\
+        StartDate VARCHAR(15),\n\
+        EndDate VARCHAR(15));"
+
+    Eval2 = "CREATE TABLE SectionInfo(\n\
+            SectionId INT(10000) Primary Key,\n\
+            CourseId INT(10000),\n\
+            Sect TEXT,\n\
+            Professor TEXT,\n\
+            Days1 VARCHAR(100),\n\
+            Days2 VARCHAR(100),\n\
+            StartTime1 INT,\n\
+            StartTime2 INT,\n\
+            EndTime1 INT,\n\
+            EndTime2 INT,\n\
+            SectionEnroll INT(10),\n\
+            CurrentSectionEnroll INT(10));"
+    
+    
+    Eval3 = "CREATE TABLE ProfTable(\n\
+                Professor VARCHAR(1000),\n\
+                CourseId INT(10000),\n\
+                SectionId INT(1000));"
+
+
+    Eval4= "CREATE TABLE Description(\n\
+                        CourseId INT(10000),\n\
+                        Description TEXT);"
+
+
+    c.execute(t)
+    c.execute(t2)
+    c.execute(t3)
+    c.execute(t4)
+    c.execute(CourseInfo)
+    c.execute(SectionInfo)
+    c.execute(ProfTable)
+    c.execute(DescTable)
+    c.close()
     
 def get_eval_info(soup):
     BIOS_eval = False

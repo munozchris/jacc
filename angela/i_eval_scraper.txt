@@ -1,0 +1,9 @@
+How to use eval scraper 
+
+1. Open IPython
+2. run eval_scraper.py
+3. url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790'
+4. soup = get_soup(url1)
+5. print(soup.prettify())
+6. get_eval_info(soup)
+

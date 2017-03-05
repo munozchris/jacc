@@ -25,7 +25,7 @@ url3 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=1
 #Eval for language classes: AKKD 10102
 url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
 
-handler = authenticate()
+# handler = authenticate()
 
 # def make_table():
 #     conn = sqlite3.connect("eval.db")
@@ -135,11 +135,8 @@ def get_eval_links(link, threshold_year = 2011):
 
 
 def get_eval_info(url = None, soup = None):
-    if url is not None:
-        soup = get_soup(handler, url)
-    if url is None and soup is None:
-        print("No url or soup object provided, can't extract eval info")
-        return None
+    handler = authenticate()
+    soup = get_soup(handler, url)
 
     BIOS_eval = False
     Language_eval = False

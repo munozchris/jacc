@@ -25,11 +25,7 @@ url3 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=1
 #Eval for language classes: AKKD 10102
 url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
 
-<<<<<<< HEAD
-# handler = authenticate()
-=======
 handler = authenticate()
->>>>>>> d73c4bce4b956721aff9256631c27de5f3a7f13b
 
 def make_table():
     conn = sqlite3.connect("eval.db")
@@ -188,9 +184,15 @@ def sql_commit():
     c.execute(sql_query, data)
     conn.commit()
     
-def get_eval_links(link, threshold_year = 2011):
-    get_soup(handler, link)
+
+
+def get_eval_links(handler, link, threshold_year = 2011):
+    soup = get_soup(handler, link)
     table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="evalSearchResults")
+    
+    if not table:
+        return None
+
     rows = table.findAll(lambda tag: tag.name=='tr')
 
     # note: it's find and findAll 
@@ -212,7 +214,7 @@ def get_eval_links(link, threshold_year = 2011):
 
 
 def get_eval_info(url = None, soup = None):
-    handler = authenticate()
+    # handler = authenticate()
     soup = get_soup(handler, url)
 
     BIOS_eval = False
@@ -309,9 +311,14 @@ def get_eval_info(url = None, soup = None):
         for i in range(len(motives_strs)):
             motives_count[motives_strs[i]] = counts_list[i]
         
-        eval_dict['YesReasonable'], eval_dict['NotReasonable'] = affirm_reasonable, negative_reasonable
+        eval_dict['YesReasonableCourseCount'], eval_dict['NotReasonableCourseCount'] = affirm_reasonable, negative_reasonable
 
-        eval_dict['MotivesForTakingClass'] = motives_count
+        motives_dict, top_reason, max_count = motives_count, '', 0
+        for motive in motives_dict:
+            if motives_dict[motive] > max_count:
+                top_reason = motive
+        eval_dict['TopReasonToTakeClass'] = top_reason
+
 
 
     desire_tag = soup.find('h3', text='In summary, I had a strong desire to take this course.')
@@ -348,7 +355,12 @@ def get_eval_info(url = None, soup = None):
             desires_count[desires_strs[i]] = counts_list[i]
 
     if not BIOS_eval:
-        eval_dict['DesireToTakeCourse'] = desires_count
+        desires_dict = desires_count
+        top_sentim, max_count = '', 0
+        for val in desires_dict:
+            if desires_dict[val] > max_count:
+                top_sentim = val
+        eval_dict['DesireToTakeCourse'] = top_sentim
 
 
     if BIOS_eval:
@@ -384,13 +396,38 @@ def get_eval_info(url = None, soup = None):
 
 
     if TA_eval:
-        eval_dict['InstructorEvals'] = parse_eval_table(soup, 'The Instructor', True)
-        eval_dict['AssignmentsEvals'] = parse_eval_table(soup, 'The Assignments', True)
-        eval_dict['OverallEval'] = parse_eval_table(soup, 'Overall', True)
+        instructor_dict = parse_eval_table(soup, 'The Instructor', True)
+        instructor_tags = {'Instr_Engaging':'Held my attention and made this course interesting', 'Instr_Organized':'Organized the course clearly',
+        'Instr_EffectiveLecturer':'Presented clear lectures', 'Instr_RespondedWellToQuestions':'Responded well to student questions',
+        'Instr_AccessibleOutsideClass':'Was available outside of class', 'Instr_HelpfulOfficeHours':'Was helpful during office hours'}
+        for tag in instructor_tags:
+            eval_dict[tag] = instructor_dict[instructor_tags[tag]]
+        
+        assignment_dict = parse_eval_table(soup, 'The Assignments', True)
+        assignment_tags = {'AppropriateCourseExpectations':'How appropriately were the requirements of the course proportioned to course goals',
+        'FairAssignmentGrading':'How fairly were the assignments graded', 'Lecture&DiscussionPreparesStudentsForAssignments':'How helpful were the lectures and discussions in preparing for exams and completing assignments',
+        'TimelyAssigmentGrading&Feedback':'How timely and useful was feedback on assignments and exams'}
+        for tag in assignment_tags:
+            eval_dict[tag] = assignment_dict[assignment_tags[tag]]
+
+        overall_eval_dict = parse_eval_table(soup, 'Overall', True)
+        overall_tags = {'AppropriateLevelContent':'The content of this course was presented at an appropriate level',
+        'StudentExpectationsMet':'This course met my expectations', 'StudentInsightGain':'This course provided me with new insight and knowledge',
+        'StudentSkillsGained':'This course provided me with useful skills'}
+        for tag in overall_tags:
+            eval_dict[tag] = overall_eval_dict[overall_tags[tag]]
 
 
     if Normal_eval:
-        eval_dict['InstructorEvals'] = parse_eval_table(soup, 'The Instructor', False)
+        instructor_eval_dict = parse_eval_table(soup, 'The Instructor', False)
+
+        instr_labels = {'Instr_EffectiveLecturer':'His/her lectures were clear and understandable', 'Instr_InterestingLecture':'His/her lectures were interesting',
+         'Instru_Recommendable':'I would recommend this instructor to others', 'Instr_PositiveTowardStudents':'The instructor exhibited a positive attitude toward student', 
+         'Instr_AccessibleOutsideClass':'The instructor was accessible outside of class', 'Instr_Organized':'The instructor was organized'}
+
+        for instr_label in instr_labels:
+            eval_dict[instr_label] = instructor_eval_dict[instr_labels[instr_label]]
+
         eval_dict['InstructorStrengthsComments'] = get_comments_list(soup, 'h3', 
             "What were the instructor's strong points?")
         eval_dict['InstructorWeaknessesComments'] = get_comments_list(soup, 'h3', 
@@ -408,10 +445,23 @@ def get_eval_info(url = None, soup = None):
         eval_dict['HowFrequentlyAssignmentsDue'] = row_text[index_min]
 
     if Language_eval:
-        eval_dict['StudiedLanguageBefore'] = parse_bar_table(soup, "Have you studied this language before?")
-        eval_dict['LanguageAspectsStressed'] = parse_lang_table(soup, 'h3', 
+        studied_lang_prior_dict = parse_bar_table(soup, "Have you studied this language before?")
+        studied_str = ''
+        for key in studied_lang_prior_dict:
+            studied_str += key + ': ' + str(studied_lang_prior_dict[key]) + ', '
+        eval_dict['StudiedLanguageBefore'] = studied_str[:-2]
+
+
+        language_aspects_dict = parse_lang_table(soup, 'h3', 
             "Rate to what extent were different aspects of the language stressed.", "gridExtent grid", 6)
-        
+        eval_dict['LanguageGrammarEmphasized&Studied'] = language_aspects_dict['Grammar']
+        eval_dict['LanguageReadingEmphasized&Studied'] = language_aspects_dict['Reading']
+        eval_dict['LanguageSpeakingEmphasized&Studied'] = language_aspects_dict['Speaking']
+        eval_dict['LanguageSpellingEmphasized&Studied'] = language_aspects_dict['Spelling']
+        eval_dict['LanguageVocabEmphasized&Studied'] = language_aspects_dict['Vocabulary']
+        eval_dict['LanguageWritingEmphasized&Studied'] = language_aspects_dict['Writing']
+
+
         org_text = parse_lang_table(soup, 'h2', "The Instructor", "grid1to5 grid", 5)
         nums = re.findall(r'\d+', org_text)
         if len(nums) > 1:
@@ -425,9 +475,17 @@ def get_eval_info(url = None, soup = None):
         eval_dict['InstructorOrganizationScore'] = score
 
         instr_table_tag = soup.findAll('table', {'class':'table-evals'})[22]
-        eval_dict['InstructorEvals'] = parse_lang_table_wtag(soup, instr_table_tag, "grid1to5 grid", 5)
+        instr_evals = parse_lang_table_wtag(soup, instr_table_tag, "grid1to5 grid", 5)
+        instr_evals_tags = {'Instr_FeedbackWasHelpfulRating':'Rate feedback on assignments and exams', 
+        'Instr_ConveyedLanguageSubtletiesRating':"Rate instructor's ability to convey the subtleties of the language",
+        'Instr_EncouragedLanguageConversationRating':"Rate instructor's ability to encourage class converation in this language",
+        'Instr_AccessibleOutsideClass&HelpfulRating':"Rate instructor's availability outside of class and willingness to help"}
+        for tag in instr_evals_tags:
+            eval_dict[tag] = instr_evals[instr_evals_tags[tag]]
 
-        eval_dict['OverallGoodInstructor'] = parse_bar_table(soup, "Overall, would you say you had a good instructor?")
+        overall_instr_dict = parse_bar_table(soup, "Overall, would you say you had a good instructor?")
+        eval_dict['OverallGoodInstructorYesCount'] = overall_instr_dict['Yes']
+        eval_dict['OverallGoodInstructorNoCount'] = overall_instr_dict['No']
         
         good_istr_reasons = [x.text for x in soup.findAll('h3', text="Why?")[1].nextSibling.nextSibling.findAll('li')]
         reasons_str = ''
@@ -435,8 +493,13 @@ def get_eval_info(url = None, soup = None):
             reasons_str += reason + ' '
         
         eval_dict['ReasonsGoodInstructor'] = reasons_str[:-1]
-        eval_dict['ImprovedLanguageSkills'] = parse_bar_table(soup, "Did taking this course improve your language skills significantly?")
-        eval_dict['RecommendClass'] = parse_bar_table(soup, "Would you recommend this class to another student?")
+        improved_lang_skills_dict = parse_bar_table(soup, "Did taking this course improve your language skills significantly?")
+        eval_dict['YesImprovedLanguageSkillsCount'] = improved_lang_skills_dict['Yes']
+        eval_dict['NoImprovedLanguageSkillsCount'] = improved_lang_skills_dict['No']
+
+        recommend_dict = parse_bar_table(soup, "Would you recommend this class to another student?")
+        eval_dict['WouldRecommendClassCount'] = recommend_dict['Yes']
+        eval_dict['WouldNotRecommendClassCount'] = recommend_dict['No']
 
     return eval_dict
 

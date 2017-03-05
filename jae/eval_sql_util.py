@@ -126,3 +126,117 @@ def convert_if_relative_url(current_url, new_url):
         
 # def quit():
 #     browser.quit()
+
+
+def parse_eval_table(soup, header_text, TA):
+        col_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[1:7]
+        row_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[7:]
+
+        col_text = [x.text for x in col_tags]
+        
+        if TA:
+            row_text = [x.text[:-1] for x in row_tags]
+        elif not TA:
+            row_text = [x.text for x in row_tags]
+
+        rows = [x.findAll('td') for x in soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('tr', {'class':'gridNA grid'})]
+        
+        table_greatest = []
+        for row_els in rows:
+            for i in range(len(row_els)):
+                if row_els[i].has_attr('class'):
+                    table_greatest.append(i)
+        rv = {}
+        for i in range(len(row_text)):
+            rv[row_text[i]] = col_text[table_greatest[i]]
+
+        return rv
+
+
+def parse_lang_table(soup, header_type, header_text, tr_class, options):
+        col_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[1:(options + 1)]
+        row_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[(options + 1):]
+
+        col_text = [x.text for x in col_tags]
+        row_text = [x.text for x in row_tags]
+        
+        rows = [x.findAll('td') for x in soup.find(header_type, 
+            text=header_text).nextSibling.nextSibling.findAll('tr', {'class':tr_class})]
+
+        table_greatest = []
+        for aspect in rows:
+            counts = []
+            for i in range(len(aspect)):
+                if aspect[i].has_attr('class'):
+                    counts.append(col_text[i])   
+            table_greatest.append(counts)
+        
+        rv = {}
+        for i in range(len(row_text)):
+            if len(table_greatest[i]) == 1:
+                rv[row_text[i]] = table_greatest[i][0]
+            else:
+                rv_str = ''
+                for val in table_greatest[i]:
+                    rv_str += val + ' & '
+                rv[row_text[i]] = rv_str[:-3]
+        
+        if len(rv) == 1:
+            for key in rv:
+                return rv[key]
+        
+        return rv
+
+
+def parse_lang_table_wtag(soup, tag, tr_class, options):
+    col_tags = tag.findAll('th')[1:(options + 1)]
+    row_tags = tag.findAll('th')[(options + 1):]
+
+    col_text = [x.text for x in col_tags]
+    row_text = [x.text for x in row_tags]
+    
+    rows = [x.findAll('td') for x in tag.findAll('tr', {'class':tr_class})]
+
+    table_greatest = []
+    for aspect in rows:
+        counts = []
+        for i in range(len(aspect)):
+            if aspect[i].has_attr('class'):
+                counts.append(col_text[i])   
+        table_greatest.append(counts)
+    
+    rv = {}
+    for i in range(len(row_text)):
+        if len(table_greatest[i]) == 1:
+            rv[row_text[i]] = table_greatest[i][0]
+        else:
+            rv_str = ''
+            for val in table_greatest[i]:
+                rv_str += val + ' & '
+            rv[row_text[i]] = rv_str[:-3]
+    
+    if len(rv) == 1:
+        for key in rv:
+            return rv[key]
+    
+    return rv
+
+
+def get_comments_list(soup, header_type, header_text):
+    remarks = [x.text for x in soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('li')]
+    rv = ""
+    for remark in remarks:
+        rv += remark + ' '
+    return rv[:-1]
+
+
+def parse_bar_table(soup, header_text):
+    row_text = [x.text for x in soup.find('h3', text=header_text).nextSibling.nextSibling.findAll('th')]
+    col_counts = count_tags = [int(re.search(r'\d+', x.text).group()) for x in soup.find('h3', 
+        text=header_text).nextSibling.nextSibling.findAll('td', {'class':'count-totals'})]
+    rv = {}
+    for i in range(len(row_text)):
+        rv[row_text[i]] = col_counts[i]
+
+    return rv
+        

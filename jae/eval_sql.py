@@ -3,7 +3,7 @@
 import bs4
 import re
 from eval_sql_util import *
-    
+import sqlite3
     
 ### Usage: ###
 # Chris's code call's Jae's code to generate a list of urls for each eval corresponding to a class
@@ -27,89 +27,162 @@ url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129'
 
 # handler = authenticate()
 
-# def make_table():
-#     conn = sqlite3.connect("eval.db")
-#     c = conn.cursor()
-#     t = "DROP TABLE IF EXISTS Eval1;"
-#     t2 = "DROP TABLE IF EXISTS Eval2;"
-#     t3 = "DROP TABLE IF EXISTS Eval3;"
-#     t4 = "DROP TABLE IF EXISTS Eval4;"
+def make_table():
+    conn = sqlite3.connect("eval.db")
+    c = conn.cursor()
+    t = "DROP TABLE IF EXISTS Eval1;"
+    t2 = "DROP TABLE IF EXISTS Eval2;"
+    t3 = "DROP TABLE IF EXISTS Eval3;"
+    t4 = "DROP TABLE IF EXISTS Eval4;"
 
-#     Eval1 = "CREATE TABLE Eval1(\n\
-#         EvalType TEXT,\n\
-#         CourseId TEXT, \n\
-#         CourseName TEXT,\n\
-#         CourseSection TEXT,\n\
-#         #Professors 
-#         Year INT,\n\
-#         #Reason for taking course
-#         RConcentrationReq INT, \n\
-#         RCoreReq INT, \n\
-#         RFacultyRec INT, \n\
-#         RInstructorRep INT, \n\
-#         RConvTime INT, \n\
-#         #Motives for taking class
-#         MStudentRec INT, \n\
-#         MConcentrationElec INT, \n\
-#         MConcentrationReq INT, \n\
-#         MCoreReq INT, \n\
-#         MFacultyRec INT, \n\
-#         MInstructorRep INT, \n\
-#         MConvTime INT, \n\
-#         MTopicInt INT, \n\
-#         #Hours spent
-#         MinHrs 
-#         MedHrs
-#         MaxHrs
-#         #TIme Commitment Reasonable 
-#         TimeYes
-#         TimeNo
+    e_xTA = "CREATE TABLE e_xTA(\n\
+        EvalType TEXT,\n\
+        CourseName TEXT,\n\
+        CourseNum INT, \n\
+        CourseSection TEXT, \n\
+        Dept TEXT, \n\
+        Year INT, \n\
+        Professors TEXT, \n\
+        HowFrequentlyAssignmentsDue TEXT, \n\
+        InstructorStrengthsComments TEXT, \n\
+        InstructorWeaknessesComments TEXT, \n\
+        MaxHrs REAL, \n\
+        MedHrs REAL, \n\
+        MinHrs REAL, \n\
+        YesReasonable INT, \n\
+        NotReasonable INT, \n\
+        NumResponses INT, \n\
+        CourseAspectsToChange TEXT)"
+        #DesireToTakeCourse
+        #InstructorEvals 
+        #MotivesForTakingClass 
+    c.execute(e_xTA)
 
-#         CourseNum TEXT,\n\
-#         Title TEXT,\n\
-#         EvalLinks TEXT,\n\
-#         TotalEnroll INT(10),\n\
-#         CurrentTotalEnroll INT(10),\n\
-#         StartDate VARCHAR(15),\n\
-#         EndDate VARCHAR(15));"
+    e_oTA = "CREATE TABLE e_oTA(\n\
+        EvalType TEXT,\n\
+        CourseName TEXT,\n\
+        CourseNum INT, \n\
+        CourseSection TEXT, \n\
+        Dept TEXT, \n\
+        Year INT, \n\
+        Professors TEXT, \n\
+        MaxHrs REAL, \n\
+        MedHrs REAL, \n\
+        MinHrs REAL, \n\
+        YesReasonable INT, \n\
+        NotReasonable INT, \n\
+        NumResponses INT)"
+        #DesireToTakeCourse #
+        #InstructorEvals #
+        #MotivesForTakingClass #
+        #AssignmentEvals #
+        #OverallEval #
+    c.execute(e_oTA)
 
-#     Eval2 = "CREATE TABLE SectionInfo(\n\
-#             SectionId INT(10000) Primary Key,\n\
-#             CourseId INT(10000),\n\
-#             Sect TEXT,\n\
-#             Professor TEXT,\n\
-#             Days1 VARCHAR(100),\n\
-#             Days2 VARCHAR(100),\n\
-#             StartTime1 INT,\n\
-#             StartTime2 INT,\n\
-#             EndTime1 INT,\n\
-#             EndTime2 INT,\n\
-#             SectionEnroll INT(10),\n\
-#             CurrentSectionEnroll INT(10));"
-    
-    
-#     Eval3 = "CREATE TABLE ProfTable(\n\
-#                 Professor VARCHAR(1000),\n\
-#                 CourseId INT(10000),\n\
-#                 SectionId INT(1000));"
+    e_bio = "CREATE TABLE e_bio(\n\
+        EvalType TEXT,\n\
+        CourseName TEXT,\n\
+        CourseNum INT, \n\
+        CourseSection TEXT, \n\
+        Dept TEXT, \n\
+        Year INT, \n\
+        Professors TEXT, \n\
+        AppropriatenessScore REAL, \n\
+        EducativeScore REAL, \n\
+        CourseOrganizationScore REAL, \n\
+        OverallClassRating REAL, \n\
+        PriorExposureScore REAL, \n\
+        MaxHrs REAL, \n\
+        MedHrs REAL, \n\
+        MinHrs REAL, \n\
+        NumResponses INT)"
+    c.execute(e_bio)
 
+    e_lang = "CREATE TABLE e_lang(\n\
+        EvalType TEXT,\n\
+        CourseName TEXT,\n\
+        CourseNum INT, \n\
+        CourseSection TEXT, \n\
+        Dept TEXT, \n\
+        Year INT, \n\
+        Professors TEXT, \n\
+        InstructorOrganizationScore REAL, \n\
+        ReasonsGoodInstructor TEXT, \n\
+        MaxHrs REAL, \n\
+        MedHrs REAL, \n\
+        MinHrs REAL, \n\
+        YesReasonable INT, \n\
+        NotReasonable INT, \n\
+        NumResponses INT)"
+        #RecommendClass#
+        #StudiedLanguageBefore#
+        #LanguageAspectsStressed#
+        #DesireToTakeCourse#
+        #ImprovedLanguageSkills#
+        #InstructorEvals# 
+        #MotivesForTakingClass# 
+        #OverallGoodInstructor#
+    c.execute(e_lang)
 
-#     Eval4= "CREATE TABLE Description(\n\
-#                         CourseId INT(10000),\n\
-#                         Description TEXT);"
+def sql_commit():
+    conn = sqlite3.connect("eval.db")
+    c = conn.cursor()
 
+    #e_xTA
+    e1 = get_eval_info(url1)
+    sql_query = "INSERT INTO e_xTA (EvalType, CourseName, CourseNum,\
+                CourseSection, Dept, Year, Professors, HowFrequentlyAssignmentsDue,\
+                InstructorStrengthsComments, InstructorWeaknessesComments,\
+                MaxHrs, MedHrs, MinHrs, YesReasonable, NotReasonable, NumResponses,\
+                CourseAspectsToChange) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    data = (e1["EvalType"], e1["CourseName"], e1["CourseNum"], e1["CourseSection"],\
+        e1["Dept"],e1["Year"], e1["Professors"],e1["HowFrequentlyAssignmentsDue"],\
+        e1["InstructorStrengthsComments"],e1["InstructorWeaknessesComments"],\
+        e1["MaxHrs"],e1["MedHrs"],e1["MinHrs"],e1["YesReasonable"],\
+        e1["NotReasonable"],e1["NumResponses"],e1["CourseAspectsToChange"])
+    c.execute(sql_query, data)
+    conn.commit()
 
-#     c.execute(t)
-#     c.execute(t2)
-#     c.execute(t3)
-#     c.execute(t4)
-#     c.execute(CourseInfo)
-#     c.execute(SectionInfo)
-#     c.execute(ProfTable)
-#     c.execute(DescTable)
-#     c.close()    
-    
-    
+    #e_oTA
+    e2 = get_eval_info(url2)
+    sql_query = "INSERT INTO e_oTA (EvalType, CourseName, CourseNum,\
+                CourseSection, Dept, Year, Professors, MaxHrs, MedHrs, MinHrs,\
+                YesReasonable, NotReasonable, NumResponses)\
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    data = (e2["EvalType"], e2["CourseName"], e2["CourseNum"], e2["CourseSection"],\
+        e2["Dept"],e2["Year"], e2["Professors"],e2["MaxHrs"],e2["MedHrs"],\
+        e2["MinHrs"],e2["YesReasonable"],e2["NotReasonable"],e2["NumResponses"])
+    c.execute(sql_query, data)
+    conn.commit()
+
+    #e_bio
+    e3 = get_eval_info(url3)
+    sql_query = "INSERT INTO e_bio (EvalType, CourseName, CourseNum,\
+                CourseSection, Dept, Year, Professors, AppropriatenessScore,\
+                EducativeScore, CourseOrganizationScore, OverallClassRating,\
+                PriorExposureScore, MaxHrs, MedHrs, MinHrs, NumResponses)\
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    data = (e3["EvalType"], e3["CourseName"], e3["CourseNum"], e3["CourseSection"],\
+        e3["Dept"],e3["Year"], e3["Professors"], e3["AppropriatenessScore"],\
+        e3["EducativeScore"], e3["CourseOrganizationScore"], e3["OverallClassRating"],\
+        e3["PriorExposureScore"], e3["MaxHrs"],e3["MedHrs"],e3["MinHrs"],\
+        e3["NumResponses"])
+    c.execute(sql_query, data)
+    conn.commit()
+
+    #e_lang
+    e4 = get_eval_info(url4)
+    sql_query = "INSERT INTO e_lang (EvalType, CourseName, CourseNum,\
+                CourseSection, Dept, Year, Professors, InstructorOrganizationScore,\
+                ReasonsGoodInstructor, MaxHrs, MedHrs, MinHrs,\
+                YesReasonable, NotReasonable, NumResponses)\
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    data = (e4["EvalType"], e4["CourseName"], e4["CourseNum"], e4["CourseSection"],\
+        e4["Dept"],e4["Year"], e4["Professors"], e4["InstructorOrganizationScore"],\
+        e4["ReasonsGoodInstructor"], e4["MaxHrs"],e4["MedHrs"],\
+        e4["MinHrs"],e4["YesReasonable"],e4["NotReasonable"],e4["NumResponses"])
+    c.execute(sql_query, data)
+    conn.commit()
     
 def get_eval_links(link, threshold_year = 2011):
     get_soup(handler, link)

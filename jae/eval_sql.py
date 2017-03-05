@@ -25,7 +25,11 @@ url3 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=1
 #Eval for language classes: AKKD 10102
 url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
 
+<<<<<<< HEAD
 # handler = authenticate()
+=======
+handler = authenticate()
+>>>>>>> d73c4bce4b956721aff9256631c27de5f3a7f13b
 
 def make_table():
     conn = sqlite3.connect("eval.db")

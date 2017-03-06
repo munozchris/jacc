@@ -21,18 +21,22 @@ with open('../chloe/final_eval_links.csv', 'r') as f:
 handler = authenticate()
 
 eval_links = []
-counter, size = 1974, len(eval_redirects)
+counter, size = 2593, len(eval_redirects)
 
-eval_redirects = eval_redirects[1975:]
+eval_redirects = eval_redirects[2594:]
+
+outfile_name = "eval_links8.csv"
+out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
+
 
 for link in eval_redirects:
     result = get_eval_links(handler, link)
+    
     if not result:
         continue
-    eval_links += result
+
+    out.writerow(result)
     counter += 1
     print('Processed link {} of {}'.format(counter, size))
 
-print("Exited for-loop.")
-out = csv.writer(open("eval_links6.csv","w"), delimiter='\n',quoting=csv.QUOTE_ALL)
-out.writerow(eval_links)
+print("Done.")

@@ -1,1 +1,4 @@
-Left off at combined eval_redirect 1975 (as in, that has still yet to be processed)
+Left off at combined eval_redirect 2291 (num is index of start, still needs to be processed)
+(on the cs.linux.uchicago.edu)
+
+conflict with stuff on the repo, left off on local machine at 1795 with eval_links6.csv

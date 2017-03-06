@@ -14,7 +14,15 @@ import sqlite3
 
 # this code starts based off the assumption that it has the soup object
 
-# driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+# eval for class w/o TA; STAT 20000
+url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790' 
+# eval for bio class; BIOS 10451
+url2 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=10451&section=01&quarter=SPG&year=2011' 
+# eval for language class; AKKD 10102
+url3 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
+# eval for class w/ TA's; ARTV 10300
+url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=53225' 
+
 
 handler = authenticate()
 
@@ -40,19 +48,25 @@ def make_table():
         Dept VARCHAR(4),\n\
         Year INT(4),\n\
         Professors TEXT,\n\
-        HowFrequentlyAssignmentsDue TEXT,\n\
-        InstructorStrengthsComments TEXT,\n\
-        InstructorWeaknessesComments TEXT,\n\
+        NumResponses INT(1000),\n\
         MaxHrs REAL,\n\
         MedHrs REAL,\n\
         MinHrs REAL,\n\
-        YesReasonable INT(1000),\n\
-        NotReasonable INT(1000),\n\
-        NumResponses INT(1000),\n\
-        CourseAspectsToChange TEXT,\n\
+        YesReasonableCourseCount INT(1000),\n\
+        NotReasonableCourseCount INT(1000),\n\
         DesireToTakeCourse TEXT,\n\
-        InstructorEvals TEXT,\n\
-        MotivesForTakingClass TEXT)"
+        TopReasonToTakeClass TEXT,\n\
+        HowFrequentlyAssignmentsDue TEXT,\n\
+        Instr_AccessibleOutsideClass TEXT,\n\
+        Instr_EffectiveLecturer TEXT,\n\
+        Instr_InterestingLecture TEXT,\n\
+        Instr_Organized TEXT,\n\
+        Instr_PositiveTowardStudents TEXT,\n\
+        Instr_Recommendable TEXT,\n\
+        InstructorStrengthsComments TEXT,\n\
+        InstructorWeaknessesComments TEXT,\n\
+        CourseAspectsToChange TEXT,\n\
+        CourseAspectsToRetain TEXT);"
     c.execute(e_xTA)
 
     e_oTA = "CREATE TABLE e_oTA(\n\
@@ -63,16 +77,28 @@ def make_table():
         Dept VARCHAR(4),\n\
         Year INT(4),\n\
         Professors TEXT,\n\
+        NumResponses INT(1000),\n\
         MaxHrs REAL,\n\
         MedHrs REAL,\n\
         MinHrs REAL,\n\
-        YesReasonable INT(1000),\n\
-        NotReasonable INT,(1000),\n\
-        NumResponses INT(1000),\n\
-        InstructorEvals TEXT,\n\
-        AssignmentEvals TEXT,\n\
-        OverallEval TEXT)"
-
+        YesReasonableCourseCount INT(1000),\n\
+        NotReasonableCourseCount INT(1000),\n\
+        DesireToTakeCourse TEXT,\n\
+        TopReasonToTakeClass TEXT,\n\
+        AppropriateCourseExpectations TEXT,\n\
+        AppropriateLevelContent TEXT,\n\
+        FairAssignmentGrading TEXT,\n\
+        Instr_AccessibleOutsideClass TEXT,\n\
+        Instr_EffectiveLecturer TEXT,\n\
+        Instr_Engaging TEXT,\n\
+        Instr_HelpfulOfficeHours TEXT,\n\
+        Instr_Organized TEXT,\n\
+        Instr_RespondedWellToQuestions TEXT,\n\
+        Lecture&DiscussionPreparesStudentsForAssignments TEXT,\n\
+        StudentExpectationsMet TEXT,\n\
+        StudentInsightGain TEXT,\n\
+        StudentSkillsGained TEXT,\n\
+        TimelyAssigmentGrading&Feedback TEXT);"
     c.execute(e_oTA)
 
     e_bio = "CREATE TABLE e_bio(\n\
@@ -91,7 +117,7 @@ def make_table():
         MaxHrs REAL,\n\
         MedHrs REAL,\n\
         MinHrs REAL,\n\
-        NumResponses INT)"
+        NumResponses INT(10000));"
     c.execute(e_bio)
 
     e_lang = "CREATE TABLE e_lang(\n\
@@ -102,23 +128,33 @@ def make_table():
         Dept VARCHAR(4),\n\
         Year INT(4),\n\
         Professors TEXT,\n\
-        InstructorOrganizationScore REAL,\n\
-        ReasonsGoodInstructor TEXT,\n\
+        NumResponses INT(1000),\n\
         MaxHrs REAL,\n\
         MedHrs REAL,\n\
         MinHrs REAL,\n\
-        YesReasonable INT,\n\
-        NotReasonable INT,\n\
-        NumResponses INT)"
-        #RecommendClass#
-        #StudiedLanguageBefore#
-        #LanguageAspectsStressed#
-        #DesireToTakeCourse#
-        #ImprovedLanguageSkills#
-        #InstructorEvals# 
-        #MotivesForTakingClass# 
-        #OverallGoodInstructor#
+        YesReasonableCourseCount INT(1000),\n\
+        NotReasonableCourseCount INT(1000),\n\
+        DesireToTakeCourse TEXT,\n\
+        TopReasonToTakeClass TEXT,\n\
+        Instr_AccessibleOutsideClass&HelpfulRating TEXT,\n\
+        Instr_ConveyedLanguageSubtletiesRating TEXT,\n\
+        Instr_EncouragedLanguageConversationRating TEXT,\n\
+        Instr_FeedbackWasHelpfulRating TEXT,\n\
+        OverallGoodInstructorYesCount INT(4),\n\
+        OverallGoodInstructorNoCount INT(4),\n\
+        StudiedLanguageBefore TEXT,\n\
+        LanguageGrammarEmphasized&Studied TEXT,\n\
+        LanguageReadingEmphasized&Studied TEXT,\n\
+        LanguageSpeakingEmphasized&Studied TEXT,\n\
+        LanguageSpellingEmphasized&Studied TEXT,\n\
+        LanguageVocabEmphasized&Studied TEXT,\n\
+        LanguageWritingEmphasized&Studied TEXT,\n\
+        YesImprovedLanguageSkillsCount INT(4),\n\
+        NoImprovedLanguageSkillsCount INT(4),\n\
+        WouldRecommendClassCount INT(4),\n\
+        WouldNotRecommendClassCount INT(4));"
     c.execute(e_lang)
+
 
 def sql_commit(eval_dict):
 
@@ -132,22 +168,29 @@ def sql_commit(eval_dict):
  
     if eval_dict["EvalType"] == "NOTA":
 
-        sql_query = "INSERT INTO e_xTA (EvalType, CourseName, CourseNum,\
-                    CourseSection, Dept, Year, Professors, HowFrequentlyAssignmentsDue,\
+        sql_query = ("INSERT INTO e_xTA (EvalType, CourseName, CourseNum,\
+                    CourseSection, Dept, Year, Professors, NumResponses,\
+                    MaxHrs, MedHrs, MinHrs, YesReasonableCourseCount,\
+                    NotReasonableCourseCount, DesireToTakeCourse,\
+                    TopReasonToTakeClass, HowFrequentlyAssignmentsDue,\
+                    Instr_AccessibleOutsideClass, Instr_EffectiveLecturer,\
+                    Instr_InterestingLecture, Instr_Organized,\
+                    Instr_PositiveTowardStudents, Instr_Recommendable,\
                     InstructorStrengthsComments, InstructorWeaknessesComments,\
-                    MaxHrs, MedHrs, MinHrs, YesReasonable, NotReasonable, NumResponses,\
-                    CourseAspectsToChange, DesireToTakeCourse, InstructorEvals, MotivesForTakingClass)\
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    CourseAspectsToChange, CourseAspectsToRetain)\
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 
-        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],\
-                    eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"],\
-                    eval_dict["Professors"],eval_dict["HowFrequentlyAssignmentsDue"],\
-                    eval_dict["InstructorStrengthsComments"],eval_dict["InstructorWeaknessesComments"],\
-                    eval_dict["MaxHrs"],eval_dict["MedHrs"],eval_dict["MinHrs"],\
-                    eval_dict["YesReasonable"],eval_dict["NotReasonable"],eval_dict["NumResponses"],\
-                    eval_dict["CourseAspectsToChange"], eval_dict["DesireToTakeCourse"],\
-                    eval_dict["InstructorEvals"], eval_dict["MotivesForTakingClass"])
-
+        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],
+                    eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"],
+                    eval_dict["Professors"], eval_dict['NumResponses'], eval_dict['MaxHrs'],
+                    eval_dict['MedHrs'], eval_dict['MinHrs'], eval_dict['YesReasonableCourseCount'],
+                    eval_dict['NotReasonableCourseCount'], eval_dict['DesireToTakeCourse'],
+                    eval_dict['TopReasonToTakeClass'], eval_dict['HowFrequentlyAssignmentsDue'],
+                    eval_dict['Instr_AccessibleOutsideClass'], eval_dict['Instr_EffectiveLecturer'],
+                    eval_dict['Instr_InterestingLecture'], eval_dict['Instr_Organized'],
+                    eval_dict['Instr_PositiveTowardStudents'], eval_dict['Instr_Recommendable'],
+                    eval_dict['InstructorStrengthsComments'], eval_dict['InstructorWeaknessesComments'],
+                    eval_dict['CourseAspectsToChange'], eval_dict['CourseAspectsToRetain'])
 
         c.execute(sql_query, data)
         conn.commit()
@@ -156,15 +199,31 @@ def sql_commit(eval_dict):
     elif eval_dict["EvalType"] == "YESTA":
 
         sql_query = "INSERT INTO e_oTA (EvalType, CourseName, CourseNum,\
-                    CourseSection, Dept, Year, Professors, MaxHrs, MedHrs, MinHrs,\
-                    YesReasonable, NotReasonable, NumResponses, InstructorEvals, AssignmentEvals,\
-                    OverallEval) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    CourseSection, Dept, Year, Professors, NumResponses,\
+                    MaxHrs, MedHrs, MinHrs, YesReasonableCourseCount,\
+                    NotReasonableCourseCount, DesireToTakeCourse,\
+                    TopReasonToTakeClass, AppropriateCourseExpectations,\
+                    AppropriateLevelContent, FairAssignmentGrading,\
+                    Instr_AccessibleOutsideClass, Instr_EffectiveLecturer,\
+                    Instr_Engaging, Instr_HelpfulOfficeHours,\
+                    Instr_Organized, Instr_RespondedWellToQuestions,\
+                    Lecture&DiscussionPreparesStudentsForAssignments,\
+                    StudentExpectationsMet, StudentInsightGain,\
+                    StudentSkillsGained, TimelyAssigmentGrading&Feedback)\
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
-        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],\
-                eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"],\
-                eval_dict["Professors"],eval_dict["MaxHrs"],eval_dict["MedHrs"],eval_dict["MinHrs"],\
-                eval_dict["YesReasonable"],eval_dict["NotReasonable"],eval_dict["NumResponses"],\
-                eval_dict["InstructorEvals"], eval_dict["AssignmentEvals"], eval_dict["OverallEval"])
+        data = (eval_dict['EvalType'], eval_dict['CourseName'], eval_dict['CourseNum'],
+                    eval_dict['CourseSection'], eval_dict['Dept'], eval_dict['Year'], eval_dict['Professors'],
+                    eval_dict['NumResponses'], eval_dict['MaxHrs'], eval_dict['MedHrs'], eval_dict['MinHrs'],
+                    eval_dict['YesReasonableCourseCount'], eval_dict['NotReasonableCourseCount'],
+                    eval_dict['DesireToTakeCourse'], eval_dict['TopReasonToTakeClass'],
+                    eval_dict['AppropriateCourseExpectations'], eval_dict['AppropriateLevelContent'],
+                    eval_dict['FairAssignmentGrading'], eval_dict['Instr_AccessibleOutsideClass'],
+                    eval_dict['Instr_EffectiveLecturer'], eval_dict['Instr_Engaging'], eval_dict['Instr_HelpfulOfficeHours'],
+                    eval_dict['Instr_Organized'], eval_dict['Instr_RespondedWellToQuestions'],
+                    eval_dict['Lecture&DiscussionPreparesStudentsForAssignments'],
+                    eval_dict['StudentExpectationsMet'], eval_dict['StudentInsightGain'],
+                    eval_dict['StudentSkillsGained'], eval_dict['TimelyAssigmentGrading&Feedback'])
 
         c.execute(sql_query, data)
         conn.commit()
@@ -178,12 +237,12 @@ def sql_commit(eval_dict):
                     PriorExposureScore, MaxHrs, MedHrs, MinHrs, NumResponses)\
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
-        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],\
-                eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"], eval_dict["Professors"],\
-                eval_dict["AppropriatenessScore"], eval_dict["EducativeScore"],\
-                eval_dict["CourseOrganizationScore"], eval_dict["OverallClassRating"],\
-                eval_dict["PriorExposureScore"], eval_dict["MaxHrs"],eval_dict["MedHrs"],\
-                eval_dict["MinHrs"], eval_dict["NumResponses"])
+        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],
+                    eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"], eval_dict["Professors"],
+                    eval_dict["AppropriatenessScore"], eval_dict["EducativeScore"],
+                    eval_dict["CourseOrganizationScore"], eval_dict["OverallClassRating"],
+                    eval_dict["PriorExposureScore"], eval_dict["MaxHrs"],eval_dict["MedHrs"],
+                    eval_dict["MinHrs"], eval_dict["NumResponses"])
 
         c.execute(sql_query, data)
         conn.commit()
@@ -191,28 +250,43 @@ def sql_commit(eval_dict):
     elif eval_dict["EvalType"] == "LANG":
 
         sql_query = "INSERT INTO e_lang (EvalType, CourseName, CourseNum,\
-                    CourseSection, Dept, Year, Professors, InstructorOrganizationScore,\
-                    ReasonsGoodInstructor, MaxHrs, MedHrs, MinHrs,\
-                    YesReasonable, NotReasonable, NumResponses)\
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    CourseSection, Dept, Year, Professors, NumResponses, MaxHrs, MedHrs, MinHrs,\
+                    YesReasonableCourseCount, NotReasonableCourseCount, DesireToTakeCourse,\
+                    TopReasonToTakeClass, Instr_AccessibleOutsideClass&HelpfulRating,\
+                    Instr_ConveyedLanguageSubtletiesRating, Instr_EncouragedLanguageConversationRating,\
+                    Instr_FeedbackWasHelpfulRating, OverallGoodInstructorYesCount,\
+                    OverallGoodInstructorNoCount, StudiedLanguageBefore,\
+                    LanguageGrammarEmphasized&Studied, LanguageReadingEmphasized&Studied,\
+                    LanguageSpeakingEmphasized&Studied, LanguageSpellingEmphasized&Studied,\
+                    LanguageVocabEmphasized&Studied, LanguageWritingEmphasized&Studied,\
+                    YesImprovedLanguageSkillsCount, NoImprovedLanguageSkillsCount,\
+                    WouldRecommendClassCount, WouldNotRecommendClassCount)\
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
-        data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],\
-                eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"],\
-                eval_dict["Professors"], eval_dict["InstructorOrganizationScore"],\
-                eval_dict["ReasonsGoodInstructor"], eval_dict["MaxHrs"],eval_dict["MedHrs"],\
-                eval_dict["MinHrs"],eval_dict["YesReasonable"],eval_dict["NotReasonable"],\
-                eval_dict["NumResponses"])
+        data = (eval_dict['EvalType'], eval_dict['CourseName'], eval_dict['CourseNum'],
+                    eval_dict['CourseSection'], eval_dict['Dept'], eval_dict['Year'], eval_dict['Professors'],
+                    eval_dict['NumResponses'], eval_dict['MaxHrs'], eval_dict['MedHrs'], eval_dict['MinHrs'],
+                    eval_dict['YesReasonableCourseCount'], eval_dict['NotReasonableCourseCount'], eval_dict['DesireToTakeCourse'],
+                    eval_dict['TopReasonToTakeClass'], eval_dict['Instr_AccessibleOutsideClass&HelpfulRating'],
+                    eval_dict['Instr_ConveyedLanguageSubtletiesRating'], eval_dict['Instr_EncouragedLanguageConversationRating'],
+                    eval_dict['Instr_FeedbackWasHelpfulRating'], eval_dict['OverallGoodInstructorYesCount'],
+                    eval_dict['OverallGoodInstructorNoCount'], eval_dict['StudiedLanguageBefore'],
+                    eval_dict['LanguageGrammarEmphasized&Studied'], eval_dict['LanguageReadingEmphasized&Studied'],
+                    eval_dict['LanguageSpeakingEmphasized&Studied'], eval_dict['LanguageSpellingEmphasized&Studied'],
+                    eval_dict['LanguageVocabEmphasized&Studied'], eval_dict['LanguageWritingEmphasized&Studied'],
+                    eval_dict['YesImprovedLanguageSkillsCount'], eval_dict['NoImprovedLanguageSkillsCount'],
+                    eval_dict['WouldRecommendClassCount'], eval_dict['WouldNotRecommendClassCount'])
 
         c.execute(sql_query, data)
         conn.commit()
-    
-
+        
 
 def get_eval_links(link, handler = handler, threshold_year = 2011):
     soup = get_soup(handler, link)
     table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="evalSearchResults")
     
     if not table:
+        print("No evals from this link!")
         return None
 
     rows = table.findAll(lambda tag: tag.name=='tr')
@@ -232,7 +306,6 @@ def get_eval_links(link, handler = handler, threshold_year = 2011):
         abs_urls.append(abs_link)
 
     return abs_urls
-    
 
 
 def get_eval_info(url = None, soup = None):
@@ -245,7 +318,6 @@ def get_eval_info(url = None, soup = None):
     Normal_eval = False
     
     eval_dict = {}
-    keys = ['CourseId', 'CourseName', 'SectionId']
 
     course_full = soup.find(class_="eval-page-title").text
     course_code = re.findall(r'([A-Z\s0-9]*:)(.*)', course_full)[0][0][:-1]
@@ -444,7 +516,7 @@ def get_eval_info(url = None, soup = None):
         instructor_eval_dict = parse_eval_table(soup, 'The Instructor', False)
 
         instr_labels = {'Instr_EffectiveLecturer':'His/her lectures were clear and understandable', 'Instr_InterestingLecture':'His/her lectures were interesting',
-         'Instru_Recommendable':'I would recommend this instructor to others', 'Instr_PositiveTowardStudents':'The instructor exhibited a positive attitude toward student', 
+         'Instr_Recommendable':'I would recommend this instructor to others', 'Instr_PositiveTowardStudents':'The instructor exhibited a positive attitude toward student', 
          'Instr_AccessibleOutsideClass':'The instructor was accessible outside of class', 'Instr_Organized':'The instructor was organized'}
 
         for instr_label in instr_labels:
@@ -529,14 +601,14 @@ def get_eval_info(url = None, soup = None):
 
 # something like this for how to run it??
 
-def get_info_from_list_of_links(csv_file):
+# def get_info_from_list_of_links(csv_file):
 
-    for url in csv_files:
-        all_links = get_eval_links(url)
-        for link in all_links:
-            eval_info = get_eval_info(link)
-            sql_commit(eval_info)
+#     for url in csv_files:
+#         all_links = get_eval_links(url)
+#         for link in all_links:
+#             eval_info = get_eval_info(link)
+#             sql_commit(eval_info)
 
 
-make_table()
-get_info_from_list_of_links("../chloe/eval_links.csv")
+# make_table()
+# get_info_from_list_of_links("../chloe/eval_links.csv")

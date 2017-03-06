@@ -21,10 +21,10 @@ handler = authenticate()
 def make_table():
     conn = sqlite3.connect("eval.db")
     c = conn.cursor()
-    t = "DROP TABLE IF EXISTS Eval1;"
-    t2 = "DROP TABLE IF EXISTS Eval2;"
-    t3 = "DROP TABLE IF EXISTS Eval3;"
-    t4 = "DROP TABLE IF EXISTS Eval4;"
+    t = "DROP TABLE IF EXISTS e_xTA;"
+    t2 = "DROP TABLE IF EXISTS e_oTA;"
+    t3 = "DROP TABLE IF EXISTS e_bio;"
+    t4 = "DROP TABLE IF EXISTS e_lang;"
 
     c.execute(t)
     c.execute(t2)
@@ -37,7 +37,7 @@ def make_table():
         CourseName TEXT,\n\
         CourseNum INT(10000),\n\
         CourseSection TEXT,\n\
-        Dept VARCHAR(4), \n\
+        Dept VARCHAR(4),\n\
         Year INT(4),\n\
         Professors TEXT,\n\
         HowFrequentlyAssignmentsDue TEXT,\n\
@@ -60,21 +60,18 @@ def make_table():
         CourseName TEXT,\n\
         CourseNum INT(10000),\n\
         CourseSection TEXT,\n\
-        Dept TEXT,\n\
+        Dept VARCHAR(4),\n\
         Year INT(4),\n\
-        Professors TEXT, \n\
+        Professors TEXT,\n\
         MaxHrs REAL,\n\
         MedHrs REAL,\n\
         MinHrs REAL,\n\
         YesReasonable INT(1000),\n\
         NotReasonable INT,(1000),\n\
-        NumResponses INT(1000),\
+        NumResponses INT(1000),\n\
         InstructorEvals TEXT,\n\
         AssignmentEvals TEXT,\n\
-        OverallEval TEXT))"
-        #DesireToTakeCourse TEXT,\n\
-        #MotivesForTakingClass TEXT,\n\
-
+        OverallEval TEXT)"
 
     c.execute(e_oTA)
 
@@ -83,12 +80,12 @@ def make_table():
         CourseName TEXT,\n\
         CourseNum INT(10000),\n\
         CourseSection TEXT,\n\
-        Dept TEXT,\n\
+        Dept VARCHAR(4),\n\
         Year INT(4),\n\
-        Professors TEXT, n\
+        Professors TEXT,\n\
         AppropriatenessScore REAL,\n\
         EducativeScore REAL,\n\
-        CourseOrganizationScore REAL,n\
+        CourseOrganizationScore REAL,\n\
         OverallClassRating REAL,\n\
         PriorExposureScore REAL,\n\
         MaxHrs REAL,\n\
@@ -102,7 +99,7 @@ def make_table():
         CourseName TEXT,\n\
         CourseNum INT(10000),\n\
         CourseSection TEXT,\n\
-        Dept TEXT,\n\
+        Dept VARCHAR(4),\n\
         Year INT(4),\n\
         Professors TEXT,\n\
         InstructorOrganizationScore REAL,\n\
@@ -182,10 +179,10 @@ def sql_commit(eval_dict):
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
         data = (eval_dict["EvalType"], eval_dict["CourseName"], eval_dict["CourseNum"],\
-                eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"], eval_dict["Professors"]\
+                eval_dict["CourseSection"], eval_dict["Dept"],eval_dict["Year"], eval_dict["Professors"],\
                 eval_dict["AppropriatenessScore"], eval_dict["EducativeScore"],\
                 eval_dict["CourseOrganizationScore"], eval_dict["OverallClassRating"],\
-                eval_dict["PriorExposureScore"], eval_dict["MaxHrs"],eval_dict["MedHrs"]\
+                eval_dict["PriorExposureScore"], eval_dict["MaxHrs"],eval_dict["MedHrs"],\
                 eval_dict["MinHrs"], eval_dict["NumResponses"])
 
         c.execute(sql_query, data)
@@ -542,5 +539,4 @@ def get_info_from_list_of_links(csv_file):
 
 
 make_table()
-get_info_from_list_of_links("eval_links.csv")
-
+get_info_from_list_of_links("../chloe/eval_links.csv")

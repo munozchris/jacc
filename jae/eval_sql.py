@@ -186,7 +186,7 @@ def sql_commit():
     
 
 
-def get_eval_links(handler, link, threshold_year = 2011):
+def get_eval_links(link, handler = handler, threshold_year = 2011):
     soup = get_soup(handler, link)
     table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="evalSearchResults")
     

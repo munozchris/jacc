@@ -21,11 +21,11 @@ with open('../chloe/final_eval_links.csv', 'r') as f:
 handler = authenticate()
 
 eval_links = []
-counter, size = 2592, len(eval_redirects)
+counter, size = 2593, len(eval_redirects)
 
-eval_redirects = eval_redirects[2593:]
+eval_redirects = eval_redirects[2594:]
 
-outfile_name = "eval_links14.csv"
+outfile_name = "eval_links8.csv"
 out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
 
 

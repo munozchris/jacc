@@ -94,11 +94,11 @@ def make_table():
         Instr_HelpfulOfficeHours TEXT,\n\
         Instr_Organized TEXT,\n\
         Instr_RespondedWellToQuestions TEXT,\n\
-        Lecture&DiscussionPreparesStudentsForAssignments TEXT,\n\
+        LectureandDiscussionPreparesStudentsForAssignments TEXT,\n\
         StudentExpectationsMet TEXT,\n\
         StudentInsightGain TEXT,\n\
         StudentSkillsGained TEXT,\n\
-        TimelyAssigmentGrading&Feedback TEXT);"
+        TimelyAssigmentGradingandFeedback TEXT);"
     c.execute(e_oTA)
 
     e_bio = "CREATE TABLE e_bio(\n\
@@ -136,19 +136,19 @@ def make_table():
         NotReasonableCourseCount INT(1000),\n\
         DesireToTakeCourse TEXT,\n\
         TopReasonToTakeClass TEXT,\n\
-        Instr_AccessibleOutsideClass&HelpfulRating TEXT,\n\
+        Instr_AccessibleOutsideClassandHelpfulRating TEXT,\n\
         Instr_ConveyedLanguageSubtletiesRating TEXT,\n\
         Instr_EncouragedLanguageConversationRating TEXT,\n\
         Instr_FeedbackWasHelpfulRating TEXT,\n\
         OverallGoodInstructorYesCount INT(4),\n\
         OverallGoodInstructorNoCount INT(4),\n\
         StudiedLanguageBefore TEXT,\n\
-        LanguageGrammarEmphasized&Studied TEXT,\n\
-        LanguageReadingEmphasized&Studied TEXT,\n\
-        LanguageSpeakingEmphasized&Studied TEXT,\n\
-        LanguageSpellingEmphasized&Studied TEXT,\n\
-        LanguageVocabEmphasized&Studied TEXT,\n\
-        LanguageWritingEmphasized&Studied TEXT,\n\
+        LanguageGrammarEmphasizedandStudied TEXT,\n\
+        LanguageReadingEmphasizedandStudied TEXT,\n\
+        LanguageSpeakingEmphasizedandStudied TEXT,\n\
+        LanguageSpellingEmphasizedandStudied TEXT,\n\
+        LanguageVocabEmphasizedandStudied TEXT,\n\
+        LanguageWritingEmphasizedandStudied TEXT,\n\
         YesImprovedLanguageSkillsCount INT(4),\n\
         NoImprovedLanguageSkillsCount INT(4),\n\
         WouldRecommendClassCount INT(4),\n\
@@ -207,9 +207,9 @@ def sql_commit(eval_dict):
                     Instr_AccessibleOutsideClass, Instr_EffectiveLecturer,\
                     Instr_Engaging, Instr_HelpfulOfficeHours,\
                     Instr_Organized, Instr_RespondedWellToQuestions,\
-                    Lecture&DiscussionPreparesStudentsForAssignments,\
+                    LectureandDiscussionPreparesStudentsForAssignments,\
                     StudentExpectationsMet, StudentInsightGain,\
-                    StudentSkillsGained, TimelyAssigmentGrading&Feedback)\
+                    StudentSkillsGained, TimelyAssigmentGradingandFeedback)\
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
         data = (eval_dict['EvalType'], eval_dict['CourseName'], eval_dict['CourseNum'],
@@ -252,13 +252,13 @@ def sql_commit(eval_dict):
         sql_query = "INSERT INTO e_lang (EvalType, CourseName, CourseNum,\
                     CourseSection, Dept, Year, Professors, NumResponses, MaxHrs, MedHrs, MinHrs,\
                     YesReasonableCourseCount, NotReasonableCourseCount, DesireToTakeCourse,\
-                    TopReasonToTakeClass, Instr_AccessibleOutsideClass&HelpfulRating,\
+                    TopReasonToTakeClass, Instr_AccessibleOutsideClassandHelpfulRating,\
                     Instr_ConveyedLanguageSubtletiesRating, Instr_EncouragedLanguageConversationRating,\
                     Instr_FeedbackWasHelpfulRating, OverallGoodInstructorYesCount,\
                     OverallGoodInstructorNoCount, StudiedLanguageBefore,\
-                    LanguageGrammarEmphasized&Studied, LanguageReadingEmphasized&Studied,\
-                    LanguageSpeakingEmphasized&Studied, LanguageSpellingEmphasized&Studied,\
-                    LanguageVocabEmphasized&Studied, LanguageWritingEmphasized&Studied,\
+                    LanguageGrammarEmphasizedandStudied, LanguageReadingEmphasizedandStudied,\
+                    LanguageSpeakingEmphasizedandStudied, LanguageSpellingEmphasizedandStudied,\
+                    LanguageVocabEmphasizedandStudied, LanguageWritingEmphasizedandStudied,\
                     YesImprovedLanguageSkillsCount, NoImprovedLanguageSkillsCount,\
                     WouldRecommendClassCount, WouldNotRecommendClassCount)\
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -601,14 +601,14 @@ def get_eval_info(url = None, soup = None):
 
 # something like this for how to run it??
 
-# def get_info_from_list_of_links(csv_file):
+def get_info_from_list_of_links(csv_file):
 
-#     for url in csv_files:
-#         all_links = get_eval_links(url)
-#         for link in all_links:
-#             eval_info = get_eval_info(link)
-#             sql_commit(eval_info)
+    for url in csv_file:
+        all_links = get_eval_links(url)
+        for link in all_links:
+            eval_info = get_eval_info(link)
+            sql_commit(eval_info)
 
 
-# make_table()
-# get_info_from_list_of_links("../chloe/eval_links.csv")
+make_table()
+get_info_from_list_of_links("../chloe/eval_links.csv")

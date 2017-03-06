@@ -261,7 +261,7 @@ def sql_commit(eval_dict):
                     LanguageVocabEmphasizedandStudied, LanguageWritingEmphasizedandStudied,\
                     YesImprovedLanguageSkillsCount, NoImprovedLanguageSkillsCount,\
                     WouldRecommendClassCount, WouldNotRecommendClassCount)\
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
         data = (eval_dict['EvalType'], eval_dict['CourseName'], eval_dict['CourseNum'],
                     eval_dict['CourseSection'], eval_dict['Dept'], eval_dict['Year'], eval_dict['Professors'],
@@ -611,4 +611,4 @@ def get_info_from_list_of_links(csv_file):
 
 
 make_table()
-get_info_from_list_of_links("../chloe/eval_links.csv")
+# get_info_from_list_of_links("../chloe/eval_links.csv")

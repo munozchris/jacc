@@ -18,6 +18,8 @@ out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
 counter, size = 0, len(eval_links)
 make_table()
 
+eval_links = eval_links[299:]
+
 for link in eval_links:
     try:
         eval_dict = get_eval_info(url = link)

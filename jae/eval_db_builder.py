@@ -15,7 +15,7 @@ outfile_name = "eval_error_log.csv"
 out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
 
 #csvwriter.writerow([str])
-counter, size = 0, len(eval_links)
+counter, size = 298, len(eval_links)
 make_table()
 
 eval_links = eval_links[299:]

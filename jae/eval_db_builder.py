@@ -1,4 +1,7 @@
-# eval_db builder
+'''
+eval.db builder 
+Buildes the SQLite3 database for all class evaluations
+''' 
 
 from eval_sql import *
 import csv
@@ -11,23 +14,31 @@ with open('eval_links.csv', 'r') as f:
         eval_links.append(row[0])
     f.close
 
-outfile_name = "eval_error_log.csv"
+outfile_name = "eval_error3.csv"
 out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
 
 #csvwriter.writerow([str])
-counter, size = 298, len(eval_links)
-make_table()
+counter, size = 1852, len(eval_links)
+#make_table()
 
-eval_links = eval_links[299:]
+#eval_links = eval_links[100:500]
+#eval_links = eval_links[500:1000]
+eval_links = eval_links[1852:]
 
 for link in eval_links:
+    print("link:",link)
     try:
         eval_dict = get_eval_info(url = link)
-        counter += 1
+        #print("Dict")
+        #for key, value in eval_dict.items(): 
+            #print(key, value)
         print("Processed eval link {} of {}".format(counter, size))
+        counter += 1
     except:
         out.writerow([link])
+        counter += 1
         continue
+
 
     sql_commit(eval_dict)
 

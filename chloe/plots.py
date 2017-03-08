@@ -97,7 +97,68 @@ def make_dept_plot(dept):
     plt.show()
 
 
-make_dept_plot("BIOS")
+#make_dept_plot("BIOS")
+
+
+def is_dept_in_ex(dept):
+
+    conn = sqlite3.connect("../jae/eval.db")
+    c = conn.cursor()
+
+    depts_in_ex = c.execute("SELECT DISTINCT Dept FROM e_xTA;").fetchall()
+    depts_in_ex = [entry[0] for entry in depts_in_ex]
+
+    if dept in depts_in_ex:
+        return True
+
+    else:
+        return False
+
+
+
+def is_dept_in_eo(dept):
+
+    conn = sqlite3.connect("../jae/eval.db")
+    c = conn.cursor()
+
+    depts_in_eo = c.execute("SELECT DISTINCT Dept FROM e_oTA;").fetchall()
+    depts_in_eo = [entry[0] for entry in depts_in_eo]
+
+    if dept in depts_in_eo:
+        return True
+    else:
+        return False
+
+
+def os_dept_in_bio(dept):
+
+    conn = sqlite3.connect("../jae/eval.db")
+    c = conn.cursor()
+
+    depts_in_bio = c.execute("SELECT DISTINCT Dept FROM e_bio;").fetchall()
+    depts_in_bio = [entry[0] for entry in depts_in_bio]
+
+    if dept in depts_in_bio:
+        return True
+    else:
+        return False
+
+
+def is_dept_in_lang(dept):
+
+    conn = sqlite3.connect("../jae/eval.db")
+    c = conn.cursor()
+
+    depts_in_lang = c.execute("SELECT DISTINCT Dept FROM e_lang;").fetchall()
+    depts_in_lang = [entry[0] for entry in depts_in_lang]
+
+    if dept in depts_in_lang:
+        return True
+    else:
+        return False
+
+
+
 
 
 
@@ -111,21 +172,45 @@ def plot_all_depts():
 
     dept_hour_dict = {}
 
-    query1 = "SELECT Dept, AVG(MedHrs), SUM(NumResponses) FROM e_xTA GROUP BY Dept"
-    results1 = c.execute(query1)
+    tables = ["e_xTA", "e_oTA", "e_lang", "e_bio"]
 
-    for dept, hour, responses in results1:
-        if dept not in dept_hour_dict:
-            dept_hour_dict["dept"] = [hour, responses]
-        else:
-            dept_hour_dict["dept"] = 
-        
+    for table in tables:
 
-    query2 = "SELECT Dept, AVG(MedHrs), SUM(NumResponses) FROM e_oTA GROUP BY Dept"
-    results2 = c.execute(query2)
+        query = "SELECT Dept, AVG(MedHrs), SUM(NumResponses) FROM "+table+" GROUP BY Dept"
+        results = c.execute(query)
 
-    query3 = "SELECT Dept, AVG(MedHrs), SUM(NumResponses) FROM e_bio GROUP BY Dept"
-    results3 = c.execute(query3)
+        for dept, hour, responses in results:
+            if dept not in dept_hour_dict:
+                dept_hour_dict[dept] = [hour, responses]
+            else:
+                total_responses = dept_hour_dict[dept][1] + responses
+                dept_hour_dict[dept][0] = (dept_hour_dict[dept][1] * dept_hour_dict[dept][0] +
+                                            hour * responses) / total_responses
+                dept_hour_dict[dept][1] = total_responses
 
-    query4 = "SELECT Dept, AVG(MedHrs), SUM(NumResponses) FROM e_lang GROUP BY Dept"
-    results4 = c.execute(query4)
+
+    initial_list = dept_hour_dict.items()
+
+    departments = [value[0] for value in initial_list]
+    print(departments)
+    hours = [value[1][0] for value in initial_list]
+    print(hours)
+
+
+
+    N = len(departments)
+
+    ind = np.arange(N)
+    width = 1.0
+
+    fig, ax = plt.subplots()
+    rects = ax.bar(ind, hours, width, color='b')
+
+    ax.set_ylabel('Average Hours Spent Per Department')
+    ax.set_title('Average Hours Spent in Each Department')
+    ax.set_xticks(ind+width/2)
+    ax.set_xticklabels(departments, rotation=45)
+
+    plt.show()
+
+plot_all_depts()

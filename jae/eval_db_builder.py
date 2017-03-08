@@ -6,24 +6,27 @@ Buildes the SQLite3 database for all class evaluations
 from eval_sql import *
 import csv
 
+print("hey!")
 eval_links = []
 
-with open('eval_links.csv', 'r') as f:
+with open('final_error.csv', 'r') as f:
     reader = csv.reader(f)
     for row in reader:
+        print(row)
         eval_links.append(row[0])
     f.close
 
-outfile_name = "eval_error3.csv"
+print("eval links", eval_links)
+outfile_name = 'eval_error.csv'
 out = csv.writer(open(outfile_name,"w"), delimiter='\n', quoting=csv.QUOTE_ALL)
 
 #csvwriter.writerow([str])
-counter, size = 1852, len(eval_links)
+counter, size = 0, len(eval_links)
 #make_table()
 
 #eval_links = eval_links[100:500]
 #eval_links = eval_links[500:1000]
-eval_links = eval_links[1852:]
+eval_links = eval_links[:]
 
 for link in eval_links:
     print("link:",link)

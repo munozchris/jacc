@@ -243,8 +243,19 @@ def plot_hours_over_time(dept, coursenum):
         dates.append(date)
         x_values.append(assign_x_values_to_dates(date))
 
-    plt.scatter(x_values, med_hours)
+
+    fig, ax = plt.subplots()
+
+    ax.scatter(x_values, med_hours, color='r')
+    ax.scatter(x_values, min_hours, color='b')
+    ax.scatter(x_values, max_hours, color='g')
+
+    ax.get_xaxis().set_ticks([])
+    ax.set_xlabel("2011 through 2016")
+    ax.set_ylabel("Max, Min, and Average Hours Spent Per Week")
+    ax.set_title("Hours Spent Per Week over Time")
+
     plt.show()
 
 
-plot_hours_over_time("STAT", 24400)
+plot_hours_over_time("CMSC", 12200)

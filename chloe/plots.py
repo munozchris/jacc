@@ -155,9 +155,6 @@ def make_dept_plot(dept):
     plt.show()
 
 
-#make_dept_plot("ENGL")
-
-
 
 # PLOT AVERAGE HOURS SPENT FOR EACH DEPARTMENT
 
@@ -189,11 +186,7 @@ def plot_all_depts():
     initial_list = dept_hour_dict.items()
 
     departments = [value[0] for value in initial_list]
-    print(departments)
     hours = [value[1][0] for value in initial_list]
-    print(hours)
-
-
 
     N = len(departments)
 
@@ -210,7 +203,6 @@ def plot_all_depts():
 
     plt.show()
 
-#plot_all_depts()
 
 
 def plot_hours_over_time(dept, coursenum):
@@ -225,7 +217,21 @@ def plot_hours_over_time(dept, coursenum):
     x_values = []
 
 
-    query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_xTA WHERE Dept = ? AND CourseNum = ?;"
+    if is_dept_in_ex:
+        query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_xTA WHERE Dept = ? AND CourseNum = ?;"
+
+
+    if is_dept_in_eo:
+        query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_oTA WHERE Dept = ? AND CourseNum = ?;"
+
+
+    if is_dept_in_bio:
+        query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_bio WHERE Dept = ? AND CourseNum = ?;"
+
+
+    if is_dept_in_lang:
+        query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_lang WHERE Dept = ? AND CourseNum = ?;"
+    
     data = (dept, coursenum)
 
     results = c.execute(query, data).fetchall()
@@ -243,7 +249,6 @@ def plot_hours_over_time(dept, coursenum):
         dates.append(date)
         x_values.append(assign_x_values_to_dates(date))
 
-
     fig, ax = plt.subplots()
 
     ax.scatter(x_values, med_hours, color='r')
@@ -257,5 +262,3 @@ def plot_hours_over_time(dept, coursenum):
 
     plt.show()
 
-
-plot_hours_over_time("CMSC", 12200)

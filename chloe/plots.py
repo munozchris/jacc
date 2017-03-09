@@ -4,6 +4,77 @@ import numpy as np
 
 
 
+# Helper functions to determine if a departmnent is in a table:
+
+def is_dept_in_ex(c, dept):
+
+    depts_in_ex = c.execute("SELECT DISTINCT Dept FROM e_xTA;").fetchall()
+    depts_in_ex = [entry[0] for entry in depts_in_ex]
+
+    if dept in depts_in_ex:
+        return True
+
+    else:
+        return False
+
+def is_dept_in_eo(c, dept):
+
+    depts_in_eo = c.execute("SELECT DISTINCT Dept FROM e_oTA;").fetchall()
+    depts_in_eo = [entry[0] for entry in depts_in_eo]
+
+    if dept in depts_in_eo:
+        return True
+    else:
+        return False
+
+def is_dept_in_bio(c, dept):
+
+    depts_in_bio = c.execute("SELECT DISTINCT Dept FROM e_bio;").fetchall()
+    depts_in_bio = [entry[0] for entry in depts_in_bio]
+
+    if dept in depts_in_bio:
+        return True
+    else:
+        return False
+
+def is_dept_in_lang(c, dept):
+
+    depts_in_lang = c.execute("SELECT DISTINCT Dept FROM e_lang;").fetchall()
+    depts_in_lang = [entry[0] for entry in depts_in_lang]
+
+    if dept in depts_in_lang:
+        return True
+    else:
+        return False
+
+
+def assign_x_values_to_dates(date):
+
+    '''
+    given a date as a string, give it a numerical 
+    value to make graphing easier
+    '''
+
+
+    first_digit = float(date[-1:]) - 2
+
+    if date[:6] == "Winter":
+        decimal = 0.0
+
+    elif date[:6] == "Spring":
+        decimal = 0.25
+
+    elif date[:6] == "Summer":
+        decimal = 0.5
+
+    elif date[:6] == "Autumn":
+        decimal = 0.75
+
+    x_value = first_digit+decimal
+
+    return x_value
+
+
 # GIVEN A DEPARTMENT, MAKE A BAR CHART OF THE AVERAGE HOURS SPENT PER WEEK 
 # FOR EACH CLASS IN THAT DEPARTMENT
 
@@ -15,20 +86,7 @@ def get_all_hours(dept):
     hours = []
     course_nums = []
 
-    depts_in_ex = c.execute("SELECT DISTINCT Dept FROM e_xTA;").fetchall()
-    depts_in_ex = [entry[0] for entry in depts_in_ex]
-
-    depts_in_eo = c.execute("SELECT DISTINCT Dept FROM e_oTA;").fetchall()
-    depts_in_e0 = [entry[0] for entry in depts_in_eo]
-
-    depts_in_bio = c.execute("SELECT DISTINCT Dept FROM e_bio;").fetchall()
-    depts_in_bio = [entry[0] for entry in depts_in_bio]
-
-    depts_in_lang = c.execute("SELECT DISTINCT Dept FROM e_lang;").fetchall()
-    depts_in_lang = [entry[0] for entry in depts_in_lang]
-
-
-    if dept in depts_in_ex:
+    if is_dept_in_ex(c, dept):
 
         query = "SELECT CourseNum, AVG(MedHrs) FROM e_xTA WHERE Dept = ? GROUP BY CourseNum"
         data = (dept,)
@@ -39,7 +97,7 @@ def get_all_hours(dept):
             hours.append(row[1])
             course_nums.append(row[0])
 
-    if dept in depts_in_eo:
+    if is_dept_in_eo(c, dept):
 
         query = "SELECT CourseNum, AVG(MedHrs) FROM e_oTA WHERE Dept = ? GROUP BY CourseNum"
         data = (dept,)
@@ -50,7 +108,7 @@ def get_all_hours(dept):
             hours.append(row[1])
             course_nums.append(row[0])
 
-    if dept in depts_in_bio:
+    if is_dept_in_bio(c, dept):
 
         query = "SELECT CourseNum, AVG(MedHrs) FROM e_bio WHERE Dept = ? GROUP BY CourseNum"
         data = (dept,)
@@ -61,7 +119,7 @@ def get_all_hours(dept):
             hours.append(row[1])
             course_nums.append(row[0])
 
-    if dept in depts_in_lang:
+    if is_dept_in_lang(c, dept):
 
         query = "SELECT CourseNum, AVG(MedHrs) FROM e_xlang WHERE Dept = ? GROUP BY CourseNum"
         data = (dept,)
@@ -97,68 +155,7 @@ def make_dept_plot(dept):
     plt.show()
 
 
-#make_dept_plot("BIOS")
-
-
-def is_dept_in_ex(dept):
-
-    conn = sqlite3.connect("../jae/eval.db")
-    c = conn.cursor()
-
-    depts_in_ex = c.execute("SELECT DISTINCT Dept FROM e_xTA;").fetchall()
-    depts_in_ex = [entry[0] for entry in depts_in_ex]
-
-    if dept in depts_in_ex:
-        return True
-
-    else:
-        return False
-
-
-
-def is_dept_in_eo(dept):
-
-    conn = sqlite3.connect("../jae/eval.db")
-    c = conn.cursor()
-
-    depts_in_eo = c.execute("SELECT DISTINCT Dept FROM e_oTA;").fetchall()
-    depts_in_eo = [entry[0] for entry in depts_in_eo]
-
-    if dept in depts_in_eo:
-        return True
-    else:
-        return False
-
-
-def os_dept_in_bio(dept):
-
-    conn = sqlite3.connect("../jae/eval.db")
-    c = conn.cursor()
-
-    depts_in_bio = c.execute("SELECT DISTINCT Dept FROM e_bio;").fetchall()
-    depts_in_bio = [entry[0] for entry in depts_in_bio]
-
-    if dept in depts_in_bio:
-        return True
-    else:
-        return False
-
-
-def is_dept_in_lang(dept):
-
-    conn = sqlite3.connect("../jae/eval.db")
-    c = conn.cursor()
-
-    depts_in_lang = c.execute("SELECT DISTINCT Dept FROM e_lang;").fetchall()
-    depts_in_lang = [entry[0] for entry in depts_in_lang]
-
-    if dept in depts_in_lang:
-        return True
-    else:
-        return False
-
-
-
+#make_dept_plot("ENGL")
 
 
 
@@ -213,4 +210,41 @@ def plot_all_depts():
 
     plt.show()
 
-plot_all_depts()
+#plot_all_depts()
+
+
+def plot_hours_over_time(dept, coursenum):
+
+    conn = sqlite3.connect("../jae/eval.db")
+    c = conn.cursor()
+
+    min_hours = []
+    max_hours = []
+    med_hours = []
+    dates = []
+    x_values = []
+
+
+    query = "SELECT CourseSection, MinHrs, MedHrs, MaxHrs FROM e_xTA WHERE Dept = ? AND CourseNum = ?;"
+    data = (dept, coursenum)
+
+    results = c.execute(query, data).fetchall()
+
+    for info, min_hrs, med_hrs, max_hrs in results:
+        year = str(info[-4:])
+        quarter = info[-11:][:-5]
+
+        date = quarter+", "+year
+
+
+        min_hours.append(min_hrs)
+        max_hours.append(max_hrs)
+        med_hours.append(med_hrs)
+        dates.append(date)
+        x_values.append(assign_x_values_to_dates(date))
+
+    plt.scatter(x_values, med_hours)
+    plt.show()
+
+
+plot_hours_over_time("STAT", 24400)

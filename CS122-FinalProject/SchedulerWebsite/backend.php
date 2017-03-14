@@ -4,8 +4,8 @@
 error_reporting(E_ALL | E_STRICT); */
 
 // connect to sqlite database
-$db = new sqlite3("/home/student/Downloads/test(1).db");
-$db->exec("ATTACH DATABASE '/home/student/Downloads/eval(1).db' as db2");
+$db = new sqlite3("/home/student/jacc122/jacc/CS122-FinalProject/Databases/courses.db");
+$db->exec("ATTACH DATABASE '/home/student/jacc122/jacc/CS122-FinalProject/Databases/eval.db' as db2");
 
 // set counter for styling/javascript functionality
 $counter = 0;
@@ -126,7 +126,7 @@ $counter = $counter + 1;
 }
 
 } else {        /* User has now specified hours, 
-                   combine evaluation and course databases */
+                   join evaluation and course databases */
 
     // table header elements (including avg hours)
     echo("<table id='results'>");
@@ -144,78 +144,78 @@ $counter = $counter + 1;
     echo("</thead>");
 
     foreach ($e_array as &$e_table) {
-    $results = $db->query("SELECT CourseInfo.Dept, CourseInfo.CourseNum, CourseInfo.Title, 
-        SectionInfo.Professor, SectionInfo.StartTime1, SectionInfo.EndTime1, SectionInfo.Days1,   
-        SectionInfo.Sect, Description.Description, AVG(MedHrs) as avg FROM CourseInfo JOIN 
-        SectionInfo USING('CourseId') JOIN Description USING('CourseId') JOIN db2.$e_table as e ON 
-        CourseInfo.Title = e.CourseName WHERE CourseInfo.Title LIKE '%" . $_POST['title'] . 
-        "%' AND CourseInfo.Dept LIKE '%" . $_POST['dept'] . "%' AND CourseInfo.CourseNum LIKE '%" . 
-        $_POST['coursenum'] . "%' AND SectionInfo.Professor LIKE '%" .
-        $_POST['profname'] . "%' AND Description.Description LIKE '%" . $desc_string .
-        " AND (SectionInfo.Days1 " .$dayquery .") GROUP BY e.CourseName HAVING avg < " . 
-        $_POST['hours'] . " LIMIT 500");
+        $results = $db->query("SELECT CourseInfo.Dept, CourseInfo.CourseNum, CourseInfo.Title, 
+            SectionInfo.Professor, SectionInfo.StartTime1, SectionInfo.EndTime1, SectionInfo.Days1,   
+            SectionInfo.Sect, Description.Description, AVG(MedHrs) as avg FROM CourseInfo JOIN 
+            SectionInfo USING('CourseId') JOIN Description USING('CourseId') JOIN db2.$e_table as e ON 
+            CourseInfo.Title = e.CourseName WHERE CourseInfo.Title LIKE '%" . $_POST['title'] . 
+            "%' AND CourseInfo.Dept LIKE '%" . $_POST['dept'] . "%' AND CourseInfo.CourseNum LIKE '%" . 
+            $_POST['coursenum'] . "%' AND SectionInfo.Professor LIKE '%" .
+            $_POST['profname'] . "%' AND Description.Description LIKE '%" . $desc_string .
+            " AND (SectionInfo.Days1 " .$dayquery .") GROUP BY e.CourseName HAVING avg < " . 
+            $_POST['hours'] . " LIMIT 500");
 
-        // row and data elements
-    while ($row = $results->fetchArray()) {
-        echo("<tr class='" . "$counter'" . ">");
-        echo("<td headers='dept' class='" ."$counter" . "'>" . $row['Dept'] . "</td>");
-        echo("<td headers='coursenum' class='" ."$counter" . "'>" . $row['CourseNum'] . "</td>");
-        echo("<td headers='sect' class='" ."$counter" . "'>" . $row['Sect'] . "</td>");
-        $row['Title'] = str_replace("&", 'and', $row['Title']);
-        echo("<td headers='title' class='" ."$counter" . "'>" . $row['Title'] . "</td>");
-        $row['Professor'] = trim($row['Professor'], "]");
-        $row['Professor'] = trim($row['Professor'], "[");
-        echo("<td headers='prof' class='" ."$counter" . "'>" . str_replace("'", '', $row['Professor']) . "</td>");
+            // row and data elements
+        while ($row = $results->fetchArray()) {
+            echo("<tr class='" . "$counter'" . ">");
+            echo("<td headers='dept' class='" ."$counter" . "'>" . $row['Dept'] . "</td>");
+            echo("<td headers='coursenum' class='" ."$counter" . "'>" . $row['CourseNum'] . "</td>");
+            echo("<td headers='sect' class='" ."$counter" . "'>" . $row['Sect'] . "</td>");
+            $row['Title'] = str_replace("&", 'and', $row['Title']);
+            echo("<td headers='title' class='" ."$counter" . "'>" . $row['Title'] . "</td>");
+            $row['Professor'] = trim($row['Professor'], "]");
+            $row['Professor'] = trim($row['Professor'], "[");
+            echo("<td headers='prof' class='" ."$counter" . "'>" . str_replace("'", '', $row['Professor']) . "</td>");
 
-        $stime = $row['StartTime1'];
-        $etime = $row['EndTime1'];
+            $stime = $row['StartTime1'];
+            $etime = $row['EndTime1'];
 
-    // Time display conversion from integers (1000 -> 10:00AM)
-    if ($row['StartTime1'] !== "None" and $row['EndTime1'] !== "None") {
-        if ($row['StartTime1'] >= 1200 and $row['StartTime1'] < 1300){
-            $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
-            $starttime .= "PM";
-        } 
-        else if ($row['StartTime1'] >= 1300) {
-            $row['StartTime1'] -= 1200;
-            $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
-            $starttime .= "PM";
+        // Time display conversion from integers (1000 -> 10:00AM)
+        if ($row['StartTime1'] !== "None" and $row['EndTime1'] !== "None") {
+            if ($row['StartTime1'] >= 1200 and $row['StartTime1'] < 1300){
+                $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
+                $starttime .= "PM";
+            } 
+            else if ($row['StartTime1'] >= 1300) {
+                $row['StartTime1'] -= 1200;
+                $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
+                $starttime .= "PM";
+            } else {
+                $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
+                $starttime .= "AM";
+            }
+
+            if ($row['EndTime1'] >= 1200 and $row['EndTime1'] < 1300){
+                $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
+                $endtime .= "PM";
+            }
+
+            else if ($row['EndTime1'] >= 1300) {
+                $row['EndTime1'] -= 1200;
+                $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
+                $endtime .= "PM";
+            } else {
+                $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
+                $endtime .= "AM";
+            }
         } else {
-            $starttime = substr_replace($row['StartTime1'], ":", -2, 0);
-            $starttime .= "AM";
+            $starttime = "None";
+            $endtime = "None";
         }
 
-        if ($row['EndTime1'] >= 1200 and $row['EndTime1'] < 1300){
-            $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
-            $endtime .= "PM";
-        }
 
-        else if ($row['EndTime1'] >= 1300) {
-            $row['EndTime1'] -= 1200;
-            $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
-            $endtime .= "PM";
-        } else {
-            $endtime = substr_replace($row['EndTime1'], ":", -2, 0);
-            $endtime .= "AM";
+            echo("<td headers='stime' id='$stime' class='" ."$counter" . "'>" . $starttime . "</td>");
+            echo("<td headers ='etime' id='$etime' class='" ."$counter" . "'>" . $endtime . "</td>");
+            echo("<td headers ='days' class='" ."$counter" . "'>" . $row['Days1'] . "</td>");
+            echo("<td headers='avg' class='" ."$counter" . "'>" . round($row['avg'], 1) . "</td>");
+            echo("<td headers='add'><input type='button' value='Add' class=$counter onClick='eventadd(this.className); drawChart(this.className);' </td>");
+            echo("<td style='visibility:hidden; display: none' class='" ."$counter" . "'>" . $row['Description'] . "</td>");
+            echo("</tr>");
+        /* counter gives each table row a unique
+           class for JavaScript functionality */
+        $counter = $counter + 1;
         }
-    } else {
-        $starttime = "None";
-        $endtime = "None";
     }
-
-
-        echo("<td headers='stime' id='$stime' class='" ."$counter" . "'>" . $starttime . "</td>");
-        echo("<td headers ='etime' id='$etime' class='" ."$counter" . "'>" . $endtime . "</td>");
-        echo("<td headers ='days' class='" ."$counter" . "'>" . $row['Days1'] . "</td>");
-        echo("<td headers='avg' class='" ."$counter" . "'>" . round($row['avg'], 1) . "</td>");
-        echo("<td headers='add'><input type='button' value='Add' class=$counter onClick='eventadd(this.className); drawChart(this.className);' </td>");
-        echo("<td style='visibility:hidden; display: none' class='" ."$counter" . "'>" . $row['Description'] . "</td>");
-        echo("</tr>");
-    /* counter gives each table row a unique
-       class for JavaScript functionality */
-    $counter = $counter + 1;
-    }
-}
 }
 echo("</table>");
 ?>

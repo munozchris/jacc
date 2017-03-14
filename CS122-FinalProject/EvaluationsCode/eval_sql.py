@@ -1,18 +1,19 @@
-# intended to be a util file to be used with a single HTML eval form
+
+# eval_sql.py
 
 import bs4
 import re
 from eval_sql_util import *
 import sqlite3
     
-### Usage: ###
-# Chris's code call's Jae's code to generate a list of urls for each eval corresponding to a class
-# Chris's then creates a soup object for each of the links in that list
-# then my code processes each soup object for the information and spits back a dictionary with the information
-# for that eval that can be processed into an sql database
-# the main scraper that calls this should store the list of evals possibly in a dict
 
-# this code starts based off the assumption that it has the soup object
+'''
+### Usage: ###
+This file contains most of the code that deals with processing class evaluation
+information 
+
+'''
+
 
 # eval for class w/o TA; STAT 20000
 url1 = 'https://evaluations.uchicago.edu/evaluation.php?id=53790' 
@@ -22,11 +23,29 @@ url2 = 'https://evaluations.uchicago.edu/evaluationLegacy.php?dept=BIOS&course=1
 url3 = 'https://evaluations.uchicago.edu/evaluation.php?id=41129' 
 # eval for class w/ TA's; ARTV 10300
 url4 = 'https://evaluations.uchicago.edu/evaluation.php?id=53225' 
+    
+    
 
-
+# get authenticated requests session - actual authentication code in util
 handler = authenticate()
-
+    
+    
+    
 def make_table():
+    '''
+        Creates a SQLdatabase for eval information comprised of tables for each 
+        of the four types of evaluations:
+        Evaluation forms for classes with TA's, classes without TA's, 
+        for languages classes, and for biology classes 
+        Will overwrite current database if it exists 
+
+        Inputs - 
+            None
+
+        Outputs  - 
+            (SQLdb file) eval.db
+    '''
+
     conn = sqlite3.connect("eval.db")
     c = conn.cursor()
     t = "DROP TABLE IF EXISTS e_xTA;"
@@ -156,11 +175,18 @@ def make_table():
     c.execute(e_lang)
 
 
+
 def sql_commit(eval_dict):
 
     '''
-    Given an evaluation dictionary, this code determines which type of evaluation
-    it is and then commits it to the corresponding SQL database.
+    Given a dictionary of evaluation data, this function commits
+    the data to the corresponding evalulation table.
+
+    Inputs - 
+        eval_dict (dictionary)
+
+    Outputs - 
+        None
     '''
 
     conn = sqlite3.connect("eval.db")
@@ -281,7 +307,21 @@ def sql_commit(eval_dict):
         conn.commit()
         
 
-def get_eval_links(link, handler = handler, threshold_year = 2011):
+
+def get_eval_links(link):
+    '''
+    Given an evaluation redirect/gateway link, 
+    this function returns a list of actual links (absolute links)
+    to evals of a class 
+
+    Inputs - 
+        link (str): a redirect/gateway url
+
+    Outputs - 
+        rv (list of str): list of absolute urls to evals for a class
+    '''
+    
+    threshold_year = 2011
     soup = get_soup(handler, link)
     table = soup.find(lambda tag: tag.name=='table' and tag.has_attr('id') and tag['id']=="evalSearchResults")
     
@@ -308,8 +348,20 @@ def get_eval_links(link, handler = handler, threshold_year = 2011):
     return abs_urls
 
 
-def get_eval_info(url = None, soup = None):
-    # handler = authenticate()
+
+def get_eval_info(url):
+    '''
+    Determines evaluation type based on the presence of specific tags
+    and the corresponding data for that type of eval into a dictionary
+
+    Inputs - 
+        url (str): absolute evaluation link
+
+    Outputs - 
+        eval_dict (dictionary): dictionary containing scraped
+        evaluation data
+    '''
+    
     soup = get_soup(handler, url)
 
     BIOS_eval = False
@@ -328,8 +380,9 @@ def get_eval_info(url = None, soup = None):
     year = int(re.search(r'\d{4}', course_section).group())
 
     # splits multiple instructors
-    instr_list = str(soup.findAll('strong', text='Instructor(s):')[0].nextSibling)[1:].split('; ')
-    if len(instr_list)>1:
+    instr_list = str(soup.findAll('strong', 
+        text='Instructor(s):')[0].nextSibling)[1:].split('; ')
+    if len(instr_list) > 1:
         formatted_instrs = []
         for full_name in instr_list:
             name_parts = full_name.split(', ')
@@ -340,20 +393,27 @@ def get_eval_info(url = None, soup = None):
             instructors_str += name
         instructors_str = instructors_str[:-2]
         eval_dict['Professors'] = instructors_str
+    elif len(instr_list) == 1:
+        parts = instr_list[0].split(", ")
+        eval_dict['Professors'] = parts[1] + ' ' + parts[0]
     else: 
-        eval_dict['Professors'] = "n/a"#course_name, instructors_str
+        eval_dict['Professors'] = "n/a" #course_name, instructors_str
 
 
-    num_responses = int(str(soup.findAll('strong', text='Number of Responses:')[0].nextSibling).strip())
+    num_responses = int(str(soup.findAll('strong', 
+        text='Number of Responses:')[0].nextSibling).strip())
 
     eval_dict['Dept'], eval_dict['CourseNum'] = dept, int(class_num)
     eval_dict['CourseName'] = course_name
-    eval_dict['NumResponses'], eval_dict['CourseSection'], eval_dict['Year'] = num_responses, course_section, year
+    eval_dict['NumResponses'] = num_responses
+    eval_dict['CourseSection'] = course_section
+    eval_dict['Year'] = year
 
     max_hr, med_hr, min_hr = 0, 0, 0
 
     # Bio-type eval
-    bio_time = soup.find('th', text='How many hours did you spend each week preparing for this class (including labs)? (0-9 + hours scale)')
+    bio_time = soup.find('th', 
+        text='How many hours did you spend each week preparing for this class (including labs)? (0-9 + hours scale)')
     if bio_time is not None:
         bio_time = bio_time.nextSibling.nextSibling
         BIOS_eval = True
@@ -364,7 +424,8 @@ def get_eval_info(url = None, soup = None):
 
     # if language class
     language_time = soup.find('h3', text="How many hours did you spend?") #form 1 
-    language_time2 = soup.find('h3', text="How many hours per week did you spend on this course?")
+    language_time2 = soup.find('h3', 
+        text="How many hours per week did you spend on this course?")
     filter_by = soup.find('h2', text="For French Classes Only:") #form 2 
 
     if language_time is not None or filter_by is not None:
@@ -381,7 +442,8 @@ def get_eval_info(url = None, soup = None):
         max_hr = float(re.search(r'\d+\.*\d*', high_text).group())
 
     # else standard TA/no TA-type eval
-    normal_time = soup.find('h3', text='How many hours per week did you spend on this course?')
+    normal_time = soup.find('h3', 
+        text='How many hours per week did you spend on this course?')
     if normal_time is not None:
         normal_time = normal_time.nextSibling.nextSibling.contents[3]
         low_text = normal_time.contents[0].text
@@ -398,17 +460,21 @@ def get_eval_info(url = None, soup = None):
         affirm_reasonable, negative_reasonable = 'null', 'null'
         motives_count = {}
         desires_count = {}
-        affirm_responses = soup.find('h3', text='Were the time demands of this course reasonable?').nextSibling.nextSibling.contents[3].next_element.contents[5].text
+        affirm_responses = soup.find('h3', 
+            text='Were the time demands of this course reasonable?').nextSibling.nextSibling.contents[3].next_element.contents[5].text
         affirm_num = int(re.search(r'\d+', affirm_responses).group())
-        negative_responses = soup.find('h3', text='Were the time demands of this course reasonable?').nextSibling.nextSibling.contents[3].find_all('td')[3].text
+        negative_responses = soup.find('h3', 
+            text='Were the time demands of this course reasonable?').nextSibling.nextSibling.contents[3].find_all('td')[3].text
         negative_num = int(re.search(r'\d+', negative_responses).group())
         affirm_reasonable, negative_reasonable = affirm_num, negative_num
 
-        motives_th_list = soup.find('h3', text='Why did you take this course?').nextSibling.nextSibling.find_all('th')
+        motives_th_list = soup.find('h3', 
+            text='Why did you take this course?').nextSibling.nextSibling.find_all('th')
         motives_strs = []
         for th in motives_th_list:
             motives_strs.append(th.text)
-        td_counts = soup.find('h3', text='Why did you take this course?').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
+        td_counts = soup.find('h3', 
+            text='Why did you take this course?').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
         counts_list = []
         for td in td_counts:
             count = int(re.search(r'\d+', td.text).group())
@@ -416,7 +482,8 @@ def get_eval_info(url = None, soup = None):
         for i in range(len(motives_strs)):
             motives_count[motives_strs[i]] = counts_list[i]
         
-        eval_dict['YesReasonableCourseCount'], eval_dict['NotReasonableCourseCount'] = affirm_reasonable, negative_reasonable
+        eval_dict['YesReasonableCourseCount'] = affirm_reasonable
+        eval_dict['NotReasonableCourseCount'] = negative_reasonable
 
         motives_dict, top_reason, max_count = motives_count, '', 0
         for motive in motives_dict:
@@ -425,8 +492,8 @@ def get_eval_info(url = None, soup = None):
         eval_dict['TopReasonToTakeClass'] = top_reason
 
 
-
-    desire_tag = soup.find('h3', text='In summary, I had a strong desire to take this course.')
+    desire_tag = soup.find('h3', 
+        text='In summary, I had a strong desire to take this course.')
     if not Language_eval and desire_tag is not None:
         Normal_eval = True
     elif not BIOS_eval and desire_tag is None:
@@ -438,12 +505,14 @@ def get_eval_info(url = None, soup = None):
         for option in options_list:
             desires_strs.append(option.text)
     elif TA_eval:
-        options_list = soup.find('h3', text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('th')
+        options_list = soup.find('h3', 
+            text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('th')
         desires_strs = []
         for option in options_list:
             desires_strs.append(option.text)    
     if Normal_eval or Language_eval:
-        desires_tds = soup.find('h3', text='In summary, I had a strong desire to take this course.').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
+        desires_tds = soup.find('h3', 
+            text='In summary, I had a strong desire to take this course.').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
         desires_counts = []
         for td in desires_tds:
             count = int(re.search(r'\d+', td.text).group())
@@ -451,7 +520,8 @@ def get_eval_info(url = None, soup = None):
         for i in range(len(desires_strs)):
             desires_count[desires_strs[i]] = counts_list[i]
     elif TA_eval:
-        desires_tds = soup.find('h3', text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
+        desires_tds = soup.find('h3', 
+            text='In summary, I had a strong desire to take this course').nextSibling.nextSibling.find_all('td', attrs = {'class':'count-totals'})
         desires_counts = []
         for td in desires_tds:
             count = int(re.search(r'\d+', td.text).group())
@@ -479,45 +549,56 @@ def get_eval_info(url = None, soup = None):
 
 
     if BIOS_eval:
-        organized_text = soup.find('td', text='The course was well organized').nextSibling.nextSibling.text
+        organized_text = soup.find('td', 
+            text='The course was well organized').nextSibling.nextSibling.text
         organized_score = float(re.search(r'\d\.\d', organized_text).group())
         eval_dict['CourseOrganizationScore'] = organized_score
 
-        skills_text = soup.find('td', text='The course provided me with useful knowledge, skills, or insights.').nextSibling.nextSibling.text
+        skills_text = soup.find('td', 
+            text='The course provided me with useful knowledge, skills, or insights.').nextSibling.nextSibling.text
         skills_score = float(re.search(r'\d\.\d', skills_text).group())
         eval_dict['EducativeScore'] = skills_score
 
-        appropr_text = soup.find('td', text='The content material was presented at an appropriate level.').nextSibling.nextSibling.text
+        appropr_text = soup.find('td', 
+            text='The content material was presented at an appropriate level.').nextSibling.nextSibling.text
         appropr_score = float(re.search(r'\d\.\d', appropr_text).group())
         eval_dict['AppropriatenessScore'] = appropr_score
 
-        overall_text = soup.find('td', text='Overall this was an outstanding course.').nextSibling.nextSibling.text
+        overall_text = soup.find('td', 
+            text='Overall this was an outstanding course.').nextSibling.nextSibling.text
         overall_score = float(re.search(r'\d\.\d', overall_text).group())
         eval_dict['OverallClassRating'] = overall_score
 
-        prior_text = soup.find('th', text='How much prior exposure did you previously have to the topics covered in this course? (1 = not at all, 5 = a great deal)').nextSibling.nextSibling.text
+        prior_text = soup.find('th', 
+            text='How much prior exposure did you previously have to the topics covered in this course? (1 = not at all, 5 = a great deal)').nextSibling.nextSibling.text
         prior_score = float(re.search(r'\d\.\d', prior_text).group())
         eval_dict['PriorExposureScore'] = prior_score
 
 
     if TA_eval:
         instructor_dict = parse_eval_table(soup, 'The Instructor', True)
-        instructor_tags = {'Instr_Engaging':'Held my attention and made this course interesting', 'Instr_Organized':'Organized the course clearly',
-        'Instr_EffectiveLecturer':'Presented clear lectures', 'Instr_RespondedWellToQuestions':'Responded well to student questions',
-        'Instr_AccessibleOutsideClass':'Was available outside of class', 'Instr_HelpfulOfficeHours':'Was helpful during office hours'}
+        instructor_tags = {'Instr_Engaging':'Held my attention and made this course interesting',
+        'Instr_Organized':'Organized the course clearly',
+        'Instr_EffectiveLecturer':'Presented clear lectures', 
+        'Instr_RespondedWellToQuestions':'Responded well to student questions',
+        'Instr_AccessibleOutsideClass':'Was available outside of class', 
+        'Instr_HelpfulOfficeHours':'Was helpful during office hours'}
         for tag in instructor_tags:
             eval_dict[tag] = instructor_dict[instructor_tags[tag]]
         
         assignment_dict = parse_eval_table(soup, 'The Assignments', True)
-        assignment_tags = {'AppropriateCourseExpectations':'How appropriately were the requirements of the course proportioned to course goals',
-        'FairAssignmentGrading':'How fairly were the assignments graded', 'LectureandDiscussionPreparesStudentsForAssignments':'How helpful were the lectures and discussions in preparing for exams and completing assignments',
+        assignment_tags = {
+        'AppropriateCourseExpectations':'How appropriately were the requirements of the course proportioned to course goals',
+        'FairAssignmentGrading':'How fairly were the assignments graded', 
+        'LectureandDiscussionPreparesStudentsForAssignments':'How helpful were the lectures and discussions in preparing for exams and completing assignments',
         'TimelyAssigmentGradingandFeedback':'How timely and useful was feedback on assignments and exams'}
         for tag in assignment_tags:
             eval_dict[tag] = assignment_dict[assignment_tags[tag]]
 
         overall_eval_dict = parse_eval_table(soup, 'Overall', True)
         overall_tags = {'AppropriateLevelContent':'The content of this course was presented at an appropriate level',
-        'StudentExpectationsMet':'This course met my expectations', 'StudentInsightGain':'This course provided me with new insight and knowledge',
+        'StudentExpectationsMet':'This course met my expectations', 
+        'StudentInsightGain':'This course provided me with new insight and knowledge',
         'StudentSkillsGained':'This course provided me with useful skills'}
         for tag in overall_tags:
             eval_dict[tag] = overall_eval_dict[overall_tags[tag]]
@@ -526,9 +607,12 @@ def get_eval_info(url = None, soup = None):
     if Normal_eval:
         instructor_eval_dict = parse_eval_table(soup, 'The Instructor', False)
 
-        instr_labels = {'Instr_EffectiveLecturer':'His/her lectures were clear and understandable', 'Instr_InterestingLecture':'His/her lectures were interesting',
-         'Instr_Recommendable':'I would recommend this instructor to others', 'Instr_PositiveTowardStudents':'The instructor exhibited a positive attitude toward student', 
-         'Instr_AccessibleOutsideClass':'The instructor was accessible outside of class', 'Instr_Organized':'The instructor was organized'}
+        instr_labels = {'Instr_EffectiveLecturer':'His/her lectures were clear and understandable',
+         'Instr_InterestingLecture':'His/her lectures were interesting',
+         'Instr_Recommendable':'I would recommend this instructor to others', 
+         'Instr_PositiveTowardStudents':'The instructor exhibited a positive attitude toward student', 
+         'Instr_AccessibleOutsideClass':'The instructor was accessible outside of class',
+         'Instr_Organized':'The instructor was organized'}
 
         for instr_label in instr_labels:
             eval_dict[instr_label] = instructor_eval_dict[instr_labels[instr_label]]
@@ -543,9 +627,11 @@ def get_eval_info(url = None, soup = None):
             "What aspects of the course should be changed?")
 
         # Assigments
-        row_text = [x.text for x in soup.find('h3', text="How often were homework assignments due?").nextSibling.nextSibling.findAll('th')]
+        row_text = [x.text for x in soup.find('h3', 
+            text="How often were homework assignments due?").nextSibling.nextSibling.findAll('th')]
         col_counts = count_tags = [int(re.search(r'\d+', x.text).group()) for x in soup.find('h3', 
-            text="How often were homework assignments due?").nextSibling.nextSibling.findAll('td', {'class':'count-totals'})]
+            text="How often were homework assignments due?").nextSibling.nextSibling.findAll('td', 
+            {'class':'count-totals'})]
         index_min = min(range(len(col_counts)), key=col_counts.__getitem__)
         eval_dict['HowFrequentlyAssignmentsDue'] = row_text[index_min]
 
@@ -583,9 +669,17 @@ def get_eval_info(url = None, soup = None):
         # else: 
         #     eval_dict['InstructorOrganizationScore'] = score
 
-        instr_table_tag = soup.findAll('table', {'class':'table-evals'})[10]
+        search = "Rate instructor's ability"
 
-        instr_evals = parse_lang_table_wtag(soup, instr_table_tag, "grid1to5 grid", 5)
+        instr_tag = None
+        instr_table_tag = soup.findAll('table', {'class':'table-evals'})
+        for tag in instr_table_tag:
+            text = tag.text
+            results = re.findall(search, text)
+            if len(results) > 0:
+                instr_tag = tag
+
+        instr_evals = parse_lang_table_wtag(soup, instr_tag, "grid1to5 grid", 5)
         instr_evals_tags = {'Instr_FeedbackWasHelpfulRating':'Rate feedback on assignments and exams', 
         'Instr_ConveyedLanguageSubtletiesRating':"Rate instructor's ability to convey the subtleties of the language",
         'Instr_EncouragedLanguageConversationRating':"Rate instructor's ability to encourage class converation in this language",
@@ -597,49 +691,56 @@ def get_eval_info(url = None, soup = None):
         eval_dict['OverallGoodInstructorYesCount'] = overall_instr_dict['Yes']
         eval_dict['OverallGoodInstructorNoCount'] = overall_instr_dict['No']
 
-        if soup.findAll('h3', text="Why"):
-            good_istr_reasons = [x.text for x in soup.findAll('h3', text="Why?")[1].nextSibling.nextSibling.findAll('li')]
+        if soup.findAll('h3', text="Why?"):
+            good_istr_reasons = [x.text for x in soup.findAll('h3', 
+                text="Why?")[1].nextSibling.nextSibling.findAll('li')]
             reasons_str = ''
             for reason in good_istr_reasons:
                 reasons_str += reason + ' '
             
             eval_dict['ReasonsGoodInstructor'] = reasons_str[:-1]
-            improved_lang_skills_dict = parse_bar_table(soup, "Did taking this course improve your language skills significantly?")
+            improved_lang_skills_dict = parse_bar_table(soup, 
+                "Did taking this course improve your language skills significantly?")
             eval_dict['YesImprovedLanguageSkillsCount'] = improved_lang_skills_dict['Yes']
             eval_dict['NoImprovedLanguageSkillsCount'] = improved_lang_skills_dict['No']
 
-            recommend_dict = parse_bar_table(soup, "Would you recommend this class to another student?")
+            recommend_dict = parse_bar_table(soup, 
+                "Would you recommend this class to another student?")
             eval_dict['WouldRecommendClassCount'] = recommend_dict['Yes']
             eval_dict['WouldNotRecommendClassCount'] = recommend_dict['No']
         else: 
-            good_istr_reasons = [x.text for x in soup.findAll('h3', text="Please explain:")[1].nextSibling.nextSibling.findAll('li')]
+            good_istr_reasons = [x.text for x in soup.findAll('h3', 
+                text="Please explain:")[1].nextSibling.nextSibling.findAll('li')]
             reasons_str = ''
             for reason in good_istr_reasons:
                 reasons_str += reason + ' '
             
             eval_dict['ReasonsGoodInstructor'] = reasons_str[:-1]
-            improved_lang_skills_dict = parse_bar_table(soup, "Did taking this course improve your language skills significantly?")
+            improved_lang_skills_dict = parse_bar_table(soup, 
+                "Did taking this course improve your language skills significantly?")
             eval_dict['YesImprovedLanguageSkillsCount'] = improved_lang_skills_dict['Yes']
             eval_dict['NoImprovedLanguageSkillsCount'] = improved_lang_skills_dict['No']
 
-            recommend_dict = parse_bar_table(soup, "Would you recommend this class to another student?")
+            recommend_dict = parse_bar_table(soup, 
+                "Would you recommend this class to another student?")
             eval_dict['WouldRecommendClassCount'] = recommend_dict['Yes']
             eval_dict['WouldNotRecommendClassCount'] = recommend_dict['No']   
 
     return eval_dict
 
 
+# separate automator code = eval_db_ builder.py
 
-# something like this for how to run it??
+# # something like this for how to run it??
 
-def get_info_from_list_of_links(csv_file):
+# def get_info_from_list_of_links(csv_file):
 
-    for url in csv_file:
-        all_links = get_eval_links(url)
-        for link in all_links:
-            eval_info = get_eval_info(link)
-            sql_commit(eval_info)
+#     for url in csv_file:
+#         all_links = get_eval_links(url)
+#         for link in all_links:
+#             eval_info = get_eval_info(link)
+#             sql_commit(eval_info)
 
 
-#make_table()
-# get_info_from_list_of_links("../chloe/eval_links.csv")
+# #make_table()
+# # get_info_from_list_of_links("../chloe/eval_links.csv")

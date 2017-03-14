@@ -1,9 +1,10 @@
-# Auxiliary function to filter out irrelevant evaluations by year 
+# eval_sql_util.py
+# Auxiliary functions for "eval_sql.py"
 # Tag finder code copied from Jae's code
 
-from selenium import webdriver  
+
+# from selenium import webdriver  
 import bs4
-from login_save import get_auth_driver
 import urllib.parse
 import re
 import requests
@@ -26,7 +27,16 @@ from getpass import getpass
 #     return browser
 
 def authenticate():
-# Opens a request session object, which stores cookies within the session
+    ''' 
+    Opens a request session object, which stores cookies within the session
+    and returns the requests session for use with BeautifulSoup
+    Inputs -
+        (None)
+
+    Returns - 
+        c (requests Object) 
+    '''
+    
     with requests.Session() as c:
 
         # URLs needed to establish and submit login information
@@ -46,7 +56,7 @@ def authenticate():
         login_data = {"j_username":USERNAME, "j_password":PASSWORD, "_eventId_proceed":""}
 
         # Post (submit) user information and log in
-        p = c.post(url2, data=login_data)
+        p = c.post(url2, data = login_data)
 
         # This locates and gets the encrypted login value of user/pass combo on an intermediary page
         soup = bs4.BeautifulSoup(p.text, 'html5lib')
@@ -64,6 +74,15 @@ def authenticate():
 
 
 def get_soup(requester, url):
+    '''
+    Disclaimer: text.encode methodology borrowed directly from pa2
+    Returns soup object for HTML scraping
+
+    Inputs - 
+        requester (Requests object/authenticated session)
+        url (str): absolute eval url
+    '''
+
     # browser.get(url)
     # html = browser.page_source
     soup = bs4.BeautifulSoup(requester.get(url).text.encode('iso-8859-1'), 'html5lib')
@@ -73,8 +92,16 @@ def get_soup(requester, url):
 
 def is_absolute_url(url):
     '''
-    Is url an absolute URL?
+    Disclaimer: borrowed directly from pa2
+    Checks to see if url is an absolute url
+
+    Inputs - 
+        url (str): url to check
+
+    Returns - 
+        Boolean
     '''
+    
     if url == "":
         return False
     return urllib.parse.urlparse(url).netloc != ""
@@ -83,6 +110,8 @@ def is_absolute_url(url):
 
 def convert_if_relative_url(current_url, new_url):
     '''
+    Disclaimer: borrowed directly from pa2
+
     Attempt to determine whether new_url is a relative URL and if so,
     use current_url to determine the path and create a new absolute
     URL.  Will add the protocol, if that is all that is missing.
@@ -123,72 +152,119 @@ def convert_if_relative_url(current_url, new_url):
         return urllib.parse.urljoin(current_url, new_url)
 
 
-        
-# def quit():
-#     browser.quit()
-
 
 def parse_eval_table(soup, header_text, TA):
-        col_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[1:7]
-        row_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[7:]
+    '''
+    Returns the max value for each row in an either a TA_eval or a non-TA eval
+    as a dictionary
+    or if two ratings have the highest frequency in a table, takes the max to be the 
+    last category encountered 
+    Helper function for "get_eval_info function"
 
-        col_text = [x.text for x in col_tags]
+    Inputs - 
+        soup (bs4 object)
+        header_text (str)
+        TA (boolean): Whether the soup object passed into this function is of 
+        the TA_eval type or non-TA_eval type
+
+    Returns - 
+        rv (dictionary): highest frequency vote for each category 
+    '''
         
-        if TA:
-            row_text = [x.text[:-1] for x in row_tags]
-        elif not TA:
-            row_text = [x.text for x in row_tags]
+    col_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[1:7]
+    row_tags = soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('th')[7:]
 
-        rows = [x.findAll('td') for x in soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('tr', {'class':'gridNA grid'})]
-        
-        table_greatest = []
-        for row_els in rows:
-            for i in range(len(row_els)):
-                if row_els[i].has_attr('class'):
-                    table_greatest.append(i)
-        rv = {}
-        for i in range(len(row_text)):
-            rv[row_text[i]] = col_text[table_greatest[i]]
+    col_text = [x.text for x in col_tags]
+    
+    if TA:
+        row_text = [x.text[:-1] for x in row_tags]
+    elif not TA:
+        row_text = [x.text for x in row_tags]
 
-        return rv
+    rows = [x.findAll('td') for x in soup.find('h2', text=header_text).nextSibling.nextSibling.findAll('tr', {'class':'gridNA grid'})]
+    
+    table_greatest = []
+    for row_els in rows:
+        for i in range(len(row_els)):
+            if row_els[i].has_attr('class'):
+                table_greatest.append(i)
+    rv = {}
+    for i in range(len(row_text)):
+        rv[row_text[i]] = col_text[table_greatest[i]]
+
+    return rv
+
 
 
 def parse_lang_table(soup, header_type, header_text, tr_class, options):
-        col_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[1:(options + 1)]
-        row_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[(options + 1):]
+    '''
+    Like parse_eval_table but for language tables that are formatted differently
+    Return the highest frequency vote for each category or the latest max
+    if there are multiple max frequency counts
 
-        col_text = [x.text for x in col_tags]
-        row_text = [x.text for x in row_tags]
-        
-        rows = [x.findAll('td') for x in soup.find(header_type, 
-            text=header_text).nextSibling.nextSibling.findAll('tr', {'class':tr_class})]
+    Inputs - 
+        soup (bs4 object)
+        header_type (str): 'h2' or 'h3'
+        header_text (str): header text of the table to locate int
+        tr_class (str): tr_class text
+        options: (int) number of categories (columns)
 
-        table_greatest = []
-        for aspect in rows:
-            counts = []
-            for i in range(len(aspect)):
-                if aspect[i].has_attr('class'):
-                    counts.append(col_text[i])   
-            table_greatest.append(counts)
+    Returns - 
+        rv (dictionary)
+    '''
         
-        rv = {}
-        for i in range(len(row_text)):
-            if len(table_greatest[i]) == 1:
-                rv[row_text[i]] = table_greatest[i][0]
-            else:
-                rv_str = ''
-                for val in table_greatest[i]:
-                    rv_str += val + ' & '
-                rv[row_text[i]] = rv_str[:-3]
-        
-        if len(rv) == 1:
-            for key in rv:
-                return rv[key]
-        
-        return rv
+    col_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[1:(options + 1)]
+    row_tags = soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('th')[(options + 1):]
+
+    col_text = [x.text for x in col_tags]
+    row_text = [x.text for x in row_tags]
+    
+    rows = [x.findAll('td') for x in soup.find(header_type, 
+        text=header_text).nextSibling.nextSibling.findAll('tr', {'class':tr_class})]
+
+    table_greatest = []
+    for aspect in rows:
+        counts = []
+        for i in range(len(aspect)):
+            if aspect[i].has_attr('class'):
+                counts.append(col_text[i])   
+        table_greatest.append(counts)
+    
+    rv = {}
+    for i in range(len(row_text)):
+        if len(table_greatest[i]) == 1:
+            rv[row_text[i]] = table_greatest[i][0]
+        else:
+            rv_str = ''
+            for val in table_greatest[i]:
+                rv_str += val + ' & '
+            rv[row_text[i]] = rv_str[:-3]
+    
+    if len(rv) == 1:
+        for key in rv:
+            return rv[key]
+    
+    return rv
+
 
 
 def parse_lang_table_wtag(soup, tag, tr_class, options):
+    '''
+    Another function to process language type eval tables 
+    if the table cannot be found using header text easily
+    is also a more accessible function
+    Has the same functionality as parse_lang_table
+
+    Inputs - 
+        soup (bs4 object)
+        tag (HTML tag): contains the table_greatest
+        tr_class (str): tr_class text
+        options (int): number of categories (columns)
+
+    Returns - 
+        rv (dictionary)
+    '''
+    
     col_tags = tag.findAll('th')[1:(options + 1)]
     row_tags = tag.findAll('th')[(options + 1):]
 
@@ -222,7 +298,21 @@ def parse_lang_table_wtag(soup, tag, tr_class, options):
     return rv
 
 
+
 def get_comments_list(soup, header_type, header_text):
+    '''
+    From a <ul> tag, grabs all the <li> elements and combines
+    them into a monster string for easier storage in the SQL table_greatest
+
+    Inputs - 
+        soup (bs4 object)
+        header_type (str): 'h2' or 'h3'
+        header_text (str): header text of the tag you're looking for
+
+    Returns - 
+        rv (str)
+    '''
+    
     remarks = [x.text for x in soup.find(header_type, text=header_text).nextSibling.nextSibling.findAll('li')]
     rv = ""
     for remark in remarks:
@@ -231,6 +321,18 @@ def get_comments_list(soup, header_type, header_text):
 
 
 def parse_bar_table(soup, header_text):
+    '''
+    Returns the category (column value) with the highest count from a 
+    bar table in an eval as a dictionary
+
+    Inputs - 
+        soup (bs4 object)
+        header_text (str): bar table header text for easier location
+
+    Returns - 
+        rv (dictionary)
+    '''
+
     row_text = [x.text for x in soup.find('h3', text=header_text).nextSibling.nextSibling.findAll('th')]
     col_counts = count_tags = [int(re.search(r'\d+', x.text).group()) for x in soup.find('h3', 
         text=header_text).nextSibling.nextSibling.findAll('td', {'class':'count-totals'})]

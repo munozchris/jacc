@@ -2,6 +2,7 @@ CS 122-FinalProject: SchedulerWebsite Directory
 
 fullcalendar-3.2.0
 & node_modules: these files retrieve the JQuery Calendar plugin
+##### THESE FILES ARE DOWNLOADS, WE DID NOT CODE THEM #####
 
 Scheduler.php: the main HTML/JavaScript/JQuery/PHP file for the website
 

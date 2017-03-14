@@ -25,14 +25,14 @@ from eval_sql_util import *
 
 eval_redirects = []
 
-with open('../chloe/eval_links.csv', 'r') as f:
+with open('gateway_links1.csv', 'r') as f:
     reader = csv.reader(f)
     for row in reader:
         eval_redirects.append(row[0])
     f.close
 
 
-with open('../chloe/final_eval_links.csv', 'r') as f:
+with open('gateway_links2.csv', 'r') as f:
     reader = csv.reader(f)
     for row in reader:
         eval_redirects.append(row[0])

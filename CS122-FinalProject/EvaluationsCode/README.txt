@@ -6,22 +6,33 @@ This directory contains necessary code needed to scrape:
 
 1. gateway_links_processor.py
 Automator script that gathers all absolute links to class evaluations
-from post-2011 and writes them out to eval_links.csv
+from post-2011 and writes them out to eval_links.csv from gateway links
 
-2. eval_links.csv 
+2. gateway_links1.csv and gateway_links2.csv
+Contains the list of all gateway_links from course scraping to be
+processed to find absolute evaluation form links
+
+3. eval_links.csv 
 Contains all evaluation form links that should be processed and
 put into the database
 
-3. eval_sql.py
+4. eval_sql.py
 1) Builds a SQL database to contain evaluaion form information
 2) Processes eval_links.csv file by scraping the content of each 
 evaluation form
 
-4. eval_sql_uitl.py
+5. eval_sql_util.py
 Some helper functions for eval_sql.py
 
-5. make_plots.py
+6. make_plots.py
 Functions that generates analysis plots based on information from evaluations
 
+7. eval_error_log.py, eval_error_log2.py, eval_error_log3.py
+List of absolute urls to evaluation forms that couldn't be automatically 
+processed and needed to be manually entered into the database/absolute
+links to evaluation forms that required us to modify our evaluation scraping
+code
 
+8. README.txt
+This file
 

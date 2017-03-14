@@ -29,9 +29,9 @@ def make_table():
     and starts over.
     '''
 
-    conn = sqlite3.connect("winter.db") # when we ran it, the database 
-                                        # was called "test"
+    conn = sqlite3.connect("winter.db")                                 
     c = conn.cursor()
+
     t = "DROP TABLE IF EXISTS CourseInfo;"
     t2 = "DROP TABLE IF EXISTS ProfTable;"
     t3 = "DROP TABLE IF EXISTS SectionInfo"

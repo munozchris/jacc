@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css?family=Dosis');
+@import url('https://fonts.googleapis.com/css?family=Average|Dosis');
+
+
+div {
+    text-align: center;
+}
+#calendar {
+    background-color: white;
+    border-radius: 5px;
+    font-family: Arial;
+    float: right;
+
+}
+
+h1 {
+    font-family: 'Average', serif;
+
+}
+
+.add {
+    background-color: orange;
+}
+
+.result {
+    margin: 0 auto;
+}
+
+
+select {
+    text-align: center;
+    display: block;
+}
+
+.result tr:hover {
+    background-color: #f5f5f5;
+}
+
+div.result {
+    display: block;
+    border-collapse: collapse;
+    overflow: auto;
+    vertical-align: middle;
+
+}
+
+table#results {
+    width: 100%;
+    overflow: auto;
+    border-collapse: collapse;
+}
+
+#results td {
+    border: 1px solid black;
+}
+
+html {
+    /*Credit: http://www.webdesignerdepot.com/2008/11/dos-and-donts-of-large-website-backgrounds/*/
+    background-color: lightblue;
+}
+
+form {
+    display: inline-block;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    height: 600px;
+
+}
+
+fieldset {
+    border-radius: 2px;
+    font-family: 'Average';
+}
+
+#wrapper {
+    display: inline-block;
+    clear: left;
+    width: 65%;
+    float: right;
+}
+
+#form {
+    display: inline-block;
+    text-align: left;
+}
+
+th {
+    border:none;
+    float:none;
+    border-right-width:0;
+}
+
+/*Locked header table credit: 
+    http://stackoverflow.com/questions/11891065/css-only-scrollable-table-with-fixed-headers*/
+
+#results {
+  border: 0;
+  border-collapse: collapse;
+}
+
+#results tr {
+  display: flex;
+}
+
+#results td {
+  padding: 3px;
+  flex: 1 auto;
+  border: 1px solid #aaa;
+  width: 1px;
+  word-wrap: break;
+}
+
+#results thead tr:after {
+  overflow-y: scroll;
+  height: 0;
+}
+
+#results thead th {
+  background-color: lightcoral;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+  flex: 1 auto;
+  display: block;
+  border: 1px solid #000;
+}
+
+#results tbody {
+  display: block;
+  overflow-y: auto;
+  height: 280px;
+
+}
+
+#results th {
+}
+
+#results td {
+    font-family: arial;
+}
+label {
+    font-family: 'Average';
+}
+input[type=text] {
+    display: block;
+    width: 300px;
+}
+
+form h1 {
+    border-radius: 4px;
+    box-shadow: 0px 4px 4px 0px #000000;
+    background-color: lightcoral;
+    text-align: center;
+    margin-top: 0;
+}
+
+h2 {
+    font-family: 'Average';
+}
+
+div.fc-toolbar.fc-header-toolbar {
+    background-color: lightcoral;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0px 4px 4px 0px #000000;
+
+}
+
+.fc-button-group {
+    margin: 5px;
+}
+button.fc-today-button {
+    margin: 5px;
+}
+
+table#results {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+input[type=button] {
+    background-color: orange;
+}
+
+button {
+    background-color: orange;
+    width: 100px;
+    height: 30px;
+    text-align: center;
+    margin-left: 100px;
+}
